@@ -14,7 +14,7 @@ From a fresh laptop to your first approved document in about 15 minutes.
 ## Install
 
 ```bash
-git clone <repo-url> sdlc-automation
+git clone https://github.com/vivekprojects-GIT/SDLC-Automation.git sdlc-automation
 cd sdlc-automation
 npm install
 npm run install-extension

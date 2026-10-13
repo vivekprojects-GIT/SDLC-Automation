@@ -1,6 +1,6 @@
 # SDLC Automation Tool – User Guide
 
-Last updated: 13 October 2026
+Last updated: 13 October 2026 · Source code: [github.com/vivekprojects-GIT/SDLC-Automation](https://github.com/vivekprojects-GIT/SDLC-Automation)
 
 The SDLC Automation Tool turns a project's raw requirements (notes, call transcripts, legacy spreadsheets and Figma screens) into an approved PRD, BRD, test scenarios, test cases and Jira-ready epics and stories. GitHub Copilot writes each draft from your organisation's templates. Built-in checks catch gaps and invented content, and the named owner approves each document before the next step starts. It runs inside VS Code on your laptop, with nothing to host and no API key.
 
@@ -41,7 +41,7 @@ About 15 minutes from a fresh clone to the first approved document.
 **1. Get the code and install the tool**
 
 ```bash
-git clone <your repository URL> sdlc-automation
+git clone https://github.com/vivekprojects-GIT/SDLC-Automation.git sdlc-automation
 cd sdlc-automation
 npm install
 npm run install-extension
