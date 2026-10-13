@@ -1,0 +1,13 @@
+{
+  "name": "@sdlc/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The SDLC tool's screens. No workflow logic: it sends messages to its host and draws what comes back.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "dompurify": "3.2.3",
+    "marked": "15.0.4"
+  }
+}

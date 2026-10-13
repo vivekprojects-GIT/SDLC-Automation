@@ -1,0 +1,23 @@
+# Sample project with made-up data. Copy this folder to start a new project.
+name: Commercial Loan Policy Check
+type: migration            # new-build | migration | enhancement
+templatePack: standard     # a folder under content/templates/
+
+# The order the steps run in. Each step waits for the one before it to be approved.
+stageOrder: [intake, prd, brd, test-scenarios, test-cases, stories]
+
+# Who approves each document.
+owners:
+  intake: Project manager
+  prd: Product owner
+  brd: Business analyst
+  test-scenarios: QA lead
+  test-cases: QA lead
+  stories: Scrum master
+
+# Optional limits. Leave them out and the tool sizes requests from the chosen model,
+# writes long test-case and story documents in pieces, and fills any gaps automatically.
+budget:
+  # maxInputTokens: 60000  # cap one request below the model's own limit
+  # maxOutputTokens: 8000  # how long one reply can safely be (the default)
+  # chunkSize: 10          # fix the piece size: scenarios per piece for test cases, requirements for stories

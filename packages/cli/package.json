@@ -1,0 +1,13 @@
+{
+  "name": "@sdlc/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Command-line runner for the SDLC pipeline. Used by the Copilot chat prompts and for offline runs.",
+  "bin": { "sdlc": "dist/sdlc.js" },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/sdlc.js --log-level=warning"
+  },
+  "dependencies": {
+    "@sdlc/core": "0.1.0"
+  }
+}

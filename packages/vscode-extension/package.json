@@ -1,0 +1,55 @@
+{
+  "name": "sdlc-automation-vscode",
+  "displayName": "SDLC Automation Tool",
+  "description": "Turns requirements and Figma screens into an approved PRD, BRD, test cases and Jira stories using GitHub Copilot, with a human review at every step.",
+  "publisher": "sdlc-automation",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Other"],
+  "main": "./dist/extension.js",
+  "activationEvents": ["workspaceContains:content/stages"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "GitHub Copilot is turned off in Restricted Mode, so documents cannot be written until you trust the folder."
+    }
+  },
+  "contributes": {
+    "commands": [
+      { "command": "sdlcAutomation.open", "title": "Open SDLC Automation Tool", "category": "SDLC" }
+    ],
+    "configuration": {
+      "title": "SDLC Automation",
+      "properties": {
+        "sdlcAutomation.model": {
+          "type": "string",
+          "default": "",
+          "description": "The Copilot model that writes the documents. Empty means Auto: the most capable available model. Easiest to change from the model list in the tool's top bar."
+        },
+        "sdlcAutomation.reviewerName": {
+          "type": "string",
+          "default": "",
+          "description": "Your name as it appears in approvals and the audit log. Defaults to your computer user name."
+        },
+        "sdlcAutomation.autoAdvance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start the next step automatically after an approval."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license -o sdlc-automation.vsix"
+  },
+  "dependencies": {
+    "@sdlc/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.95.0",
+    "@vscode/vsce": "3.2.1"
+  }
+}

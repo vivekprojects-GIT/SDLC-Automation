@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.vsix
+packages/vscode-extension/media/ui.js
+packages/vscode-extension/media/ui.css
+packages/vscode-extension/media/*.map
+.vscode-test/
+projects/*/outputs/.prompt-*.md
+.preview/
+projects/*/outputs/

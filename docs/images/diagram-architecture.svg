@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" width="980" height="520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Architecture: what runs on the laptop and what goes to GitHub Copilot</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="520" rx="12" fill="#f8fafc"/>
+
+  <!-- Laptop boundary -->
+  <rect x="20" y="64" width="730" height="436" rx="12" fill="none" stroke="#94a3b8" stroke-dasharray="6 5"/>
+  <text x="40" y="90" font-size="13" font-weight="700" fill="#334155" letter-spacing="0.04em">YOUR LAPTOP · VS CODE</text>
+
+  <!-- Front doors -->
+  <text x="44" y="122" font-size="11.5" font-weight="600" fill="#64748b" letter-spacing="0.06em">WHERE PEOPLE WORK</text>
+  <rect x="40" y="132" width="200" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="140" y="162" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">SDLC Tool screen</text>
+  <text x="140" y="182" text-anchor="middle" font-size="12" fill="#64748b">Review, approve, send back</text>
+  <text x="140" y="197" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Consolas, monospace">packages/ui</text>
+
+  <rect x="40" y="262" width="200" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="140" y="292" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Copilot Chat commands</text>
+  <text x="140" y="312" text-anchor="middle" font-size="12" fill="#64748b">/sdlc-next, /sdlc-status</text>
+  <text x="140" y="327" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Consolas, monospace">.github/prompts</text>
+
+  <rect x="40" y="392" width="200" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="140" y="422" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Command line</text>
+  <text x="140" y="442" text-anchor="middle" font-size="12" fill="#64748b">Approve, answer, export</text>
+  <text x="140" y="457" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Consolas, monospace">packages/cli</text>
+
+  <!-- Middle: extension and engine -->
+  <rect x="290" y="132" width="210" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="395" y="162" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">VS Code extension</text>
+  <text x="395" y="182" text-anchor="middle" font-size="12" fill="#64748b">Hosts the screen, calls Copilot</text>
+  <text x="395" y="197" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="Consolas, monospace">packages/vscode-extension</text>
+
+  <rect x="290" y="262" width="210" height="204" rx="8" fill="#eff6ff" stroke="#3b82f6"/>
+  <text x="395" y="290" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1e3a8a">Core engine</text>
+  <text x="395" y="306" text-anchor="middle" font-size="11" fill="#3b82f6" font-family="Consolas, monospace">packages/core</text>
+  <g font-size="12.5" fill="#1e293b">
+    <text x="312" y="336">Pipeline and review gates</text>
+    <text x="312" y="360">Guardrail checks</text>
+    <text x="312" y="384">Prompt building and budget</text>
+    <text x="312" y="408">Traceability</text>
+    <text x="312" y="432">Versions and audit log</text>
+    <text x="312" y="456">Jira export</text>
+  </g>
+  <g fill="#3b82f6"><circle cx="304" cy="332" r="2.5"/><circle cx="304" cy="356" r="2.5"/><circle cx="304" cy="380" r="2.5"/><circle cx="304" cy="404" r="2.5"/><circle cx="304" cy="428" r="2.5"/><circle cx="304" cy="452" r="2.5"/></g>
+
+  <!-- Right: files -->
+  <text x="554" y="122" font-size="11.5" font-weight="600" fill="#64748b" letter-spacing="0.06em">FILES IN THE REPOSITORY</text>
+  <rect x="550" y="132" width="180" height="96" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="566" y="156" font-size="13.5" font-weight="600" fill="#1e293b" font-family="Consolas, monospace">content/</text>
+  <text x="566" y="176" font-size="12" fill="#64748b">Agents, step instructions</text>
+  <text x="566" y="194" font-size="12" fill="#64748b">Templates, rules</text>
+  <text x="566" y="212" font-size="12" fill="#64748b">NFR checklist</text>
+
+  <rect x="550" y="248" width="180" height="76" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="566" y="272" font-size="13.5" font-weight="600" fill="#1e293b" font-family="Consolas, monospace">projects/…/inputs</text>
+  <text x="566" y="292" font-size="12" fill="#64748b">Notes, transcripts,</text>
+  <text x="566" y="310" font-size="12" fill="#64748b">spreadsheets, Figma</text>
+
+  <rect x="550" y="344" width="180" height="122" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="566" y="368" font-size="13.5" font-weight="600" fill="#1e293b" font-family="Consolas, monospace">projects/…/outputs</text>
+  <text x="566" y="388" font-size="12" fill="#64748b">The six documents</text>
+  <text x="566" y="406" font-size="12" fill="#64748b">State and audit log</text>
+  <text x="566" y="424" font-size="12" fill="#64748b">Jira import file</text>
+  <text x="566" y="442" font-size="12" fill="#64748b">Traceability matrix</text>
+
+  <!-- Arrows inside the laptop -->
+  <line x1="240" y1="169" x2="286" y2="169" stroke="#64748b" stroke-width="1.6" marker-start="url(#a)" marker-end="url(#a)"/>
+  <line x1="395" y1="206" x2="395" y2="258" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="140" y1="336" x2="140" y2="388" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="240" y1="429" x2="286" y2="429" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <path d="M500 300H520V180H546" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="500" y1="300" x2="546" y2="286" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="500" y1="405" x2="546" y2="405" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="516" y="398" font-size="11" fill="#64748b" text-anchor="middle">writes</text>
+  <text x="532" y="246" font-size="11" fill="#64748b" text-anchor="middle">reads</text>
+
+  <!-- Cloud -->
+  <rect x="790" y="132" width="170" height="110" rx="10" fill="#f5f3ff" stroke="#7c3aed"/>
+  <text x="875" y="166" text-anchor="middle" font-size="14.5" font-weight="700" fill="#4c1d95">GitHub Copilot</text>
+  <text x="875" y="186" text-anchor="middle" font-size="12" fill="#6d28d9">Your organisation's</text>
+  <text x="875" y="202" text-anchor="middle" font-size="12" fill="#6d28d9">Copilot plan</text>
+  <text x="875" y="226" text-anchor="middle" font-size="11" fill="#7c3aed">Writes the drafts</text>
+
+  <path d="M395 132V40H875V128" fill="none" stroke="#7c3aed" stroke-width="1.6" marker-start="url(#ab)" marker-end="url(#ab)"/>
+  <rect x="470" y="28" width="330" height="24" rx="4" fill="#f8fafc"/>
+  <text x="635" y="44" text-anchor="middle" font-size="12" fill="#4c1d95">VS Code Language Model API: request out, draft back</text>
+
+  <!-- Note -->
+  <rect x="790" y="270" width="170" height="196" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="806" y="296" font-size="12.5" font-weight="700" fill="#1e293b">What is sent</text>
+  <g font-size="12" fill="#475569">
+    <text x="806" y="318">Rules, agent, template,</text>
+    <text x="806" y="335">approved documents</text>
+    <text x="806" y="352">and the inputs</text>
+  </g>
+  <text x="806" y="384" font-size="12.5" font-weight="700" fill="#1e293b">What stays local</text>
+  <g font-size="12" fill="#475569">
+    <text x="806" y="406">State, audit log,</text>
+    <text x="806" y="423">approvals and decisions</text>
+    <text x="806" y="447">No server, no API key</text>
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+loan_id,borrower,submitted,amount_usd,dscr,ltv_pct,existing_exposure_usd,risk_rating,result,checked_by
+L-2023-0001,Borrower A,2023-01-09,2500000,1.42,62,1200000,4,Pass,credit officer
+L-2023-0002,Borrower B,2023-01-11,6200000,1.18,70,0,5,Exception,senior credit officer
+L-2023-0003,Borrower C,2023-02-02,900000,1.31,80,300000,3,Exception,credit officer
+L-2024-0104,Borrower D,2024-05-20,4000000,1.55,55,7000000,7,Declined,credit officer
+,Borrower E,2025-03-14,1500000,1.27,74,0,6,Pass,credit officer

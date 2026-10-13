@@ -1,0 +1,7 @@
+Kickoff call: Commercial Loan Policy Check (sample transcript, made-up data)
+
+[12:40] Credit lead: We should bring over three years of the old checklist so we can see a borrower's history.
+[14:15] RM lead: The worst part today is waiting for credit to re-check the same rules.
+[18:05] RM lead: RMs will not wait more than a few seconds for results. It has to feel instant.
+[21:10] Credit lead: Senior sign-off kicks in above 7.5 million, I think. We'd have to check.
+[24:30] Project manager: Screens are in Figma: application summary, policy check results and the exception request.

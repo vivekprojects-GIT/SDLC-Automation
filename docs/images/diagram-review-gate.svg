@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 360" width="980" height="360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>The life of one document at its review gate</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="360" rx="12" fill="#f8fafc"/>
+
+  <!-- Review gate region -->
+  <rect x="398" y="96" width="362" height="108" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-dasharray="5 4"/>
+  <text x="412" y="90" font-size="11.5" font-weight="700" fill="#15803d" letter-spacing="0.06em">REVIEW GATE</text>
+
+  <!-- States -->
+  <rect x="30" y="118" width="150" height="64" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="105" y="145" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Ready to run</text>
+  <text x="105" y="165" text-anchor="middle" font-size="12" fill="#64748b">Earlier steps approved</text>
+
+  <rect x="220" y="118" width="150" height="64" rx="8" fill="#ffffff" stroke="#3b82f6"/>
+  <text x="295" y="145" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Writing</text>
+  <text x="295" y="165" text-anchor="middle" font-size="12" fill="#64748b">Agent drafts via Copilot</text>
+
+  <rect x="410" y="118" width="150" height="64" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="485" y="145" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Checks</text>
+  <text x="485" y="165" text-anchor="middle" font-size="12" fill="#64748b">Run in code, every time</text>
+
+  <rect x="600" y="118" width="150" height="64" rx="8" fill="#ffffff" stroke="#d97706"/>
+  <text x="675" y="145" text-anchor="middle" font-size="14.5" font-weight="600" fill="#1e293b">Needs review</text>
+  <text x="675" y="165" text-anchor="middle" font-size="12" fill="#64748b">Named owner decides</text>
+
+  <rect x="820" y="118" width="140" height="64" rx="8" fill="#f0fdf4" stroke="#16a34a"/>
+  <text x="890" y="145" text-anchor="middle" font-size="14.5" font-weight="600" fill="#14532d">Approved</text>
+  <text x="890" y="165" text-anchor="middle" font-size="12" fill="#15803d">v1.0, name and time</text>
+
+  <!-- Forward path -->
+  <line x1="180" y1="150" x2="216" y2="150" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="370" y1="150" x2="406" y2="150" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="560" y1="150" x2="596" y2="150" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <line x1="750" y1="150" x2="816" y2="150" stroke="#16a34a" stroke-width="1.8" marker-end="url(#a)"/>
+  <text x="791" y="140" text-anchor="middle" font-size="11.5" font-weight="600" fill="#15803d">Approve</text>
+
+  <!-- Edit file loop -->
+  <path d="M650 182V236H485V186" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="567" y="254" text-anchor="middle" font-size="12" fill="#334155"><tspan font-weight="600">Edit file</tspan> and save: checks run again</text>
+
+  <!-- Send back loop -->
+  <path d="M700 182V286H295V186" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="497" y="304" text-anchor="middle" font-size="12" fill="#334155"><tspan font-weight="600">Send back</tspan> with a comment: the agent revises it as v0.2, v0.3…</text>
+
+  <!-- Reopen -->
+  <path d="M890 118V52H675V114" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#a)"/>
+  <text x="782" y="44" text-anchor="middle" font-size="12" fill="#334155"><tspan font-weight="600">Reopen for changes</tspan>: every later step becomes out of date</text>
+
+  <!-- Footer -->
+  <line x1="30" y1="324" x2="950" y2="324" stroke="#e2e8f0"/>
+  <text x="30" y="346" font-size="12.5" fill="#475569"><tspan font-weight="700" fill="#1e293b">Approve stays locked</tspan> while any check blocks. Fix it (Ask the agent to fix this, or edit the file) or decide it (Keep, Remove or Waive).</text>
+</svg>

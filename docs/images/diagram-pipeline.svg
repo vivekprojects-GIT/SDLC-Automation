@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 380" width="980" height="380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>The pipeline: six documents, each behind a review gate, then export</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#64748b"/>
+    </marker>
+    <g id="gate">
+      <path d="M0 -11L11 0L0 11L-11 0z" fill="#15803d"/>
+      <path d="M-4.5 0.5l3 3l6 -6.5" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </defs>
+
+  <rect x="0" y="0" width="980" height="380" rx="12" fill="#f8fafc"/>
+
+  <!-- Row 1 -->
+  <g>
+    <rect x="30" y="56" width="180" height="72" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="5 4"/>
+    <text x="120" y="86" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">Inputs</text>
+    <text x="120" y="108" text-anchor="middle" font-size="12" fill="#64748b">Notes, transcripts, sheets, Figma</text>
+
+    <rect x="260" y="56" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="350" y="86" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">1  Intake and gaps</text>
+    <text x="350" y="108" text-anchor="middle" font-size="12" fill="#64748b">Project manager</text>
+
+    <rect x="490" y="56" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="580" y="86" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">2  PRD</text>
+    <text x="580" y="108" text-anchor="middle" font-size="12" fill="#64748b">Product owner</text>
+
+    <rect x="720" y="56" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="810" y="86" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">3  BRD</text>
+    <text x="810" y="108" text-anchor="middle" font-size="12" fill="#64748b">Business analyst</text>
+
+    <line x1="210" y1="92" x2="256" y2="92" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <line x1="440" y1="92" x2="486" y2="92" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <line x1="670" y1="92" x2="716" y2="92" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <use href="#gate" x="465" y="92"/>
+    <use href="#gate" x="695" y="92"/>
+  </g>
+
+  <!-- Return to row 2 -->
+  <path d="M900 92H930V164H120V188" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <use href="#gate" x="930" y="128"/>
+
+  <!-- Row 2 -->
+  <g>
+    <rect x="30" y="192" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="120" y="222" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">4  Test scenarios</text>
+    <text x="120" y="244" text-anchor="middle" font-size="12" fill="#64748b">QA lead</text>
+
+    <rect x="260" y="192" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="350" y="222" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">5  Test cases</text>
+    <text x="350" y="244" text-anchor="middle" font-size="12" fill="#64748b">QA lead</text>
+
+    <rect x="490" y="192" width="180" height="72" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="580" y="222" text-anchor="middle" font-size="15" font-weight="600" fill="#1e293b">6  Epics and stories</text>
+    <text x="580" y="244" text-anchor="middle" font-size="12" fill="#64748b">Scrum master</text>
+
+    <rect x="720" y="192" width="180" height="72" rx="8" fill="#eff6ff" stroke="#3b82f6"/>
+    <text x="810" y="222" text-anchor="middle" font-size="15" font-weight="600" fill="#1e3a8a">Export</text>
+    <text x="810" y="244" text-anchor="middle" font-size="12" fill="#1d4ed8">Jira CSV, traceability matrix</text>
+
+    <line x1="210" y1="228" x2="256" y2="228" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <line x1="440" y1="228" x2="486" y2="228" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <line x1="670" y1="228" x2="716" y2="228" stroke="#64748b" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <use href="#gate" x="235" y="228"/>
+    <use href="#gate" x="465" y="228"/>
+    <use href="#gate" x="695" y="228"/>
+  </g>
+
+  <!-- Legend -->
+  <line x1="30" y1="296" x2="950" y2="296" stroke="#e2e8f0"/>
+  <use href="#gate" x="44" y="326"/>
+  <text x="66" y="322" font-size="13" font-weight="600" fill="#1e293b">Review gate</text>
+  <text x="66" y="342" font-size="12.5" fill="#475569">Checks run on the draft, then the named owner approves it, sends it back or edits it. A blocking check stops approval.</text>
+  <text x="66" y="360" font-size="12.5" fill="#475569">Each step reads only approved documents, so nothing runs on an unapproved one.</text>
+</svg>
