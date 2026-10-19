@@ -1,6 +1,8 @@
 # SDLC CAPM
 
-Writes MUFG's PDLC Planning deliverables (BRD, FDD, DRD/DSD, TDD, and the SIT and UAT QA Strategies) and the RTM with its Transition to BAU plan, using GitHub Copilot, with a named owner approving each one. The approved deliverables are exported as Word and Excel files for Planview or PPP.
+Writes MUFG's PDLC Planning deliverables (BRD, FDD, DRD/DSD, TDD, and the SIT and UAT QA Strategies) and the RTM with its Transition to BAU plan, using GitHub Copilot, with a named owner approving each one. The approved deliverables are exported as Word and Excel files for Planview or PPP, with a Jira import of epics, stories and sub-tasks for the delivery team.
+
+![The SDLC CAPM screen with a deliverable waiting for its owner's review](https://raw.githubusercontent.com/vivekprojects-GIT/SDLC-Automation/main/docs/images/screen-review.jpg)
 
 Open the `SDLC_CAPM` folder in VS Code, then click **SDLC CAPM** in the status bar or run **SDLC CAPM: Open SDLC CAPM** from the Command Palette.
 

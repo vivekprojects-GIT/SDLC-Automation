@@ -16,6 +16,14 @@ Writes MUFG's PDLC Planning-phase deliverables with GitHub Copilot, in MUFG's la
 | — | RTM with T2BAU plan | Generated | Excel |
 | — | Jira import: epics, stories and sub-tasks | Generated | Excel and CSV |
 
+![The SDLC CAPM screen with the UAT QA Strategy waiting for the UAT lead's review](docs/images/screen-review.jpg)
+
+*A deliverable waiting for its owner: the pipeline on the left, the draft with its guardrail checks in the middle, and approvals and traceability on the right.*
+
+![The Export page listing the seven approved deliverables, the RTM and the Jira import, with their formats](docs/images/screen-export.jpg)
+
+*The Export page: every deliverable with its version, approver and format, then the RTM and the Jira import generated from them.*
+
 ## Start here
 
 | If you want to… | Read |

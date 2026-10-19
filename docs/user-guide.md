@@ -231,9 +231,9 @@ Everything is written to the project's `outputs` folder.
 | `jira-import.csv` | The file Jira's CSV import reads |
 | `jira-import.xlsx` | Excel: the same issues to review, the import steps and Document control |
 
-![The Export page listing the seven approved deliverables and the RTM, with their formats](images/screen-export.jpg)
+![The Export page listing the seven approved deliverables, the RTM and the Jira import, with their formats](images/screen-export.jpg)
 
-*The Export page: each deliverable with its version, approver and format, and the RTM generated from them.*
+*The Export page: each deliverable with its version, approver and format, then the RTM and the Jira import generated from them.*
 
 Every Word file opens with a **Document control** table, and every workbook with a **Document control** tab: the document, project, version, status, owner, who approved it and when, and which agent and model wrote it. Word and Excel files open in Office from the Export page.
 
