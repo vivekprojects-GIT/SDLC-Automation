@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { STAGES, extractItems, parseQuestions, parseStories } from '@sdlc/core';
-import { coverage } from '../src/guardrails/checks';
+import { STAGES, extractItems, parseQuestions } from '@sdlc/core';
+import { dataMappings, designCoverage, scopeDecisions } from '../src/guardrails/checks';
 import { cleanOutput, setTableCell } from '../src/util/markdown';
 import { FAKE_FIXTURES } from './support/sample-outputs';
 
+const input = (key: keyof typeof STAGES, body: string) => ({ def: STAGES[key], body, template: '', answers: {}, resolutions: {}, removed: [], docs: { brd: FAKE_FIXTURES.brd, fdd: FAKE_FIXTURES.fdd }, checklist: [], notes: [] });
+
 describe('markdown parsing', () => {
-  it('reads IDs and their references from tables and headings', () => {
-    const items = extractItems(FAKE_FIXTURES['test-scenarios']);
-    expect(items.find((i) => i.id === 'TS-02')?.refs).toEqual(['FR-01', 'FR-02', 'FR-05']);
-    const stories = extractItems(FAKE_FIXTURES.stories).filter((i) => i.prefix === 'US');
-    expect(stories.map((s) => s.id)).toEqual(['US-01', 'US-02', 'US-03', 'US-04', 'US-05']);
+  it('reads IDs and their references from tables', () => {
+    const design = extractItems(FAKE_FIXTURES.fdd).filter((i) => i.prefix === 'FD');
+    expect(design.map((d) => d.id)).toEqual(['FD-01', 'FD-02', 'FD-03', 'FD-04', 'FD-05', 'FD-06', 'FD-07', 'FD-08']);
+    expect(design.find((d) => d.id === 'FD-05')?.refs).toEqual(['FR-05']);
+    const mapping = extractItems(FAKE_FIXTURES.dsd).find((i) => i.id === 'DS-02');
+    expect(mapping).toMatchObject({ prefix: 'DS', refs: ['DA-02'] });
   });
 
   it('reads open questions and fills in an answer', () => {
@@ -19,18 +22,25 @@ describe('markdown parsing', () => {
     expect(parseQuestions(filled).find((q) => q.id === 'Q2')?.answer).toBe('7 years | per policy');
   });
 
-  it('parses stories for the Jira export', () => {
-    const epics = parseStories(FAKE_FIXTURES.stories);
-    expect(epics[0].stories[0]).toMatchObject({ id: 'US-01', points: 8, covers: ['FR-01', 'FR-02', 'FR-03', 'FR-04'], figma: 'Policy check results' });
-    expect(epics[0].stories[0].acceptance).toHaveLength(3);
-    expect(epics[0].stories[0].subTasks).toHaveLength(3);
+  it('suggests a send-back comment when the FDD misses BRD requirements', () => {
+    const body = '# FDD\n\n## Functional design\n| FDD ID | BRD ID | Functional change |\n| --- | --- | --- |\n| FD-01 | FR-01 | Add the DSCR rule |\n';
+    const [result] = designCoverage(input('fdd', body));
+    expect(result.level).toBe('block');
+    expect(result.fix).toMatch(/^Add functional design items for FR-02, FR-03/);
   });
 
-  it('suggests a send-back comment when test cases miss requirements', () => {
-    const body = '# Test cases\n\n## Summary\nOne.\n\n## Test cases\n| ID | Type | Scenario | Steps | Test data | Expected result | Covers |\n| --- | --- | --- | --- | --- | --- | --- |\n| TC-01 | Positive | TS-01 | 1. Run | x | ok | TS-01, FR-01 |\n';
-    const [result] = coverage({ def: STAGES['test-cases'], body, template: '', answers: {}, resolutions: {}, removed: [], docs: { brd: FAKE_FIXTURES.brd, scenarios: FAKE_FIXTURES['test-scenarios'] }, checklist: [], notes: [] }, 'testCases');
+  it('blocks a data attribute with no source-to-destination mapping', () => {
+    const body = FAKE_FIXTURES.dsd.split('\n').filter((l) => !l.startsWith('| DS-04')).join('\n');
+    const [result] = dataMappings(body);
     expect(result.level).toBe('block');
-    expect(result.fix).toMatch(/^Add test cases for FR-02, FR-03/);
+    expect(result.message).toContain('DA-04');
+  });
+
+  it('reads each requirement’s SIT scope decision', () => {
+    const [ok] = scopeDecisions(input('sit-strategy', FAKE_FIXTURES['sit-strategy']), 'SIT');
+    expect(ok).toMatchObject({ level: 'pass', message: 'SIT scope decided for every requirement: 8 in, 0 out' });
+    const [uat] = scopeDecisions(input('uat-strategy', FAKE_FIXTURES['uat-strategy']), 'UAT');
+    expect(uat.message).toBe('UAT scope decided for every requirement: 7 in, 1 out');
   });
 
   it('cleans a reply wrapped in a code fence with a preamble', () => {

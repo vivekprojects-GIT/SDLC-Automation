@@ -1,59 +1,69 @@
-export const STAGE_KEYS = ['intake', 'prd', 'brd', 'test-scenarios', 'test-cases', 'stories'] as const;
+// The steps of MUFG's PDLC Planning phase, in their default order. Each step writes one deliverable
+// and waits at its own review gate. Owners are defaults until MUFG confirms its approvers.
+export const STAGE_KEYS = ['intake', 'brd', 'fdd', 'dsd', 'tdd', 'sit-strategy', 'uat-strategy'] as const;
 export type StageKey = (typeof STAGE_KEYS)[number];
+
+/** The kinds of numbered item a step writes in a table: functional design, data attributes, technical design. */
+export type ItemPrefix = 'FD' | 'DA' | 'TD';
 
 export interface StageDef {
   key: StageKey;
   /** Name of the step in the UI. */
   title: string;
-  /** Name of the document the step writes. */
+  /** Name of the deliverable the step writes. */
   docTitle: string;
   docCode: string;
   /** File under content/agents/. */
   agent: string;
   agentTitle: string;
   defaultOwner: string;
-  /** File under content/templates/<pack>/ and content/stages/. */
+  /** File under content/templates/<pack>/ and content/steps/. */
   file: string;
   /** Approved documents this step may read, when they come earlier in the stage order. */
   inputsFrom: StageKey[];
   readsRawInputs: boolean;
   readsFigma: boolean;
-  /** Steps whose output can be written in pieces, numbered with this prefix. */
-  chunkPrefix?: 'TC' | 'US';
+  /** Steps that write numbered items (FD-01, DA-01, TD-01…) traced back to requirements. */
+  items?: ItemPrefix;
+  /** How the deliverable is exported for Planview/PPP: a Word document, or an Excel workbook with one tab per section. */
+  exportAs: 'word' | 'excel';
 }
 
 export const STAGES: Record<StageKey, StageDef> = {
   intake: {
     key: 'intake', title: 'Intake and gaps', docTitle: 'Intake summary', docCode: 'CTX',
     agent: 'business-analyst', agentTitle: 'Business analyst agent', defaultOwner: 'Project manager',
-    file: 'intake.md', inputsFrom: [], readsRawInputs: true, readsFigma: true,
-  },
-  prd: {
-    key: 'prd', title: 'PRD', docTitle: 'Product Requirements Document', docCode: 'PRD',
-    agent: 'product-manager', agentTitle: 'Product manager agent', defaultOwner: 'Product owner',
-    file: 'prd.md', inputsFrom: ['intake', 'brd'], readsRawInputs: false, readsFigma: false,
+    file: 'intake.md', inputsFrom: [], readsRawInputs: true, readsFigma: true, exportAs: 'word',
   },
   brd: {
-    key: 'brd', title: 'BRD', docTitle: 'Business Requirements Document', docCode: 'BRD',
+    key: 'brd', title: 'BRD', docTitle: 'Business Requirement Document', docCode: 'BRD',
     agent: 'business-analyst', agentTitle: 'Business analyst agent', defaultOwner: 'Business analyst',
-    file: 'brd.md', inputsFrom: ['intake', 'prd'], readsRawInputs: false, readsFigma: false,
+    file: 'brd.md', inputsFrom: ['intake'], readsRawInputs: false, readsFigma: false, exportAs: 'excel',
   },
-  'test-scenarios': {
-    key: 'test-scenarios', title: 'Test scenarios', docTitle: 'Test scenarios', docCode: 'TS',
+  fdd: {
+    key: 'fdd', title: 'FDD', docTitle: 'Functional Design Document', docCode: 'FDD',
+    agent: 'it-lead', agentTitle: 'IT lead agent', defaultOwner: 'IT lead',
+    file: 'fdd.md', inputsFrom: ['intake', 'brd'], readsRawInputs: false, readsFigma: true, items: 'FD', exportAs: 'excel',
+  },
+  dsd: {
+    key: 'dsd', title: 'DRD / DSD', docTitle: 'Data Sourcing Document (with Data Requirement Document)', docCode: 'DSD',
+    agent: 'it-lead', agentTitle: 'IT lead agent', defaultOwner: 'IT lead',
+    file: 'dsd.md', inputsFrom: ['brd', 'fdd'], readsRawInputs: true, readsFigma: false, items: 'DA', exportAs: 'excel',
+  },
+  tdd: {
+    key: 'tdd', title: 'TDD', docTitle: 'Technical Design Document', docCode: 'TDD',
+    agent: 'it-lead', agentTitle: 'IT lead agent', defaultOwner: 'IT lead',
+    file: 'tdd.md', inputsFrom: ['brd', 'fdd', 'dsd'], readsRawInputs: false, readsFigma: false, items: 'TD', exportAs: 'word',
+  },
+  'sit-strategy': {
+    key: 'sit-strategy', title: 'SIT QA Strategy', docTitle: 'SIT QA Strategy', docCode: 'SITS',
     agent: 'qa-lead', agentTitle: 'QA lead agent', defaultOwner: 'QA lead',
-    file: 'test-scenarios.md', inputsFrom: ['intake', 'brd'], readsRawInputs: false, readsFigma: true,
+    file: 'sit-strategy.md', inputsFrom: ['brd', 'fdd', 'dsd', 'tdd'], readsRawInputs: false, readsFigma: false, exportAs: 'word',
   },
-  'test-cases': {
-    key: 'test-cases', title: 'Test cases', docTitle: 'Test cases', docCode: 'TC',
-    agent: 'qa-lead', agentTitle: 'QA lead agent', defaultOwner: 'QA lead',
-    file: 'test-cases.md', inputsFrom: ['brd', 'test-scenarios'], readsRawInputs: false, readsFigma: false,
-    chunkPrefix: 'TC',
-  },
-  stories: {
-    key: 'stories', title: 'Epics and stories', docTitle: 'Epics and user stories', docCode: 'US',
-    agent: 'scrum-master', agentTitle: 'Scrum master agent', defaultOwner: 'Scrum master',
-    file: 'stories.md', inputsFrom: ['intake', 'brd'], readsRawInputs: false, readsFigma: true,
-    chunkPrefix: 'US',
+  'uat-strategy': {
+    key: 'uat-strategy', title: 'UAT QA Strategy', docTitle: 'UAT QA Strategy', docCode: 'UATS',
+    agent: 'uat-lead', agentTitle: 'UAT lead agent', defaultOwner: 'UAT lead',
+    file: 'uat-strategy.md', inputsFrom: ['brd', 'fdd', 'sit-strategy'], readsRawInputs: false, readsFigma: false, exportAs: 'word',
   },
 };
 

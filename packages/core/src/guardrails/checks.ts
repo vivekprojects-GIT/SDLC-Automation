@@ -1,6 +1,6 @@
 import type { ChecklistItem } from '../content';
 import type { StageDef } from '../stages/registry';
-import { buildMatrix, type TraceDocs } from '../trace/matrix';
+import { buildMatrix, scopeOf, uncovered, type TraceDocs } from '../trace/matrix';
 import { cellFor, extractItems } from '../trace/items';
 import type { CheckResult, Resolution } from '../types';
 import { normalizeHeading, parseSections, stripComments } from '../util/markdown';
@@ -15,7 +15,7 @@ export interface CheckInput {
   resolutions: Record<string, Resolution>;
   removed: string[];
   /** Approved documents from earlier steps that the checks compare against. */
-  docs: Pick<TraceDocs, 'brd' | 'scenarios'> & { intake?: string };
+  docs: Pick<TraceDocs, 'brd' | 'fdd'> & { intake?: string };
   checklist: ChecklistItem[];
   notes: string[];
   /** Readable input files, for the intake step's "every file is used" check. */
@@ -116,38 +116,58 @@ export function checklist(body: string, items: ChecklistItem[], resolutions: Rec
   return out;
 }
 
-export function coverage(i: CheckInput, kind: 'scenarios' | 'testCases' | 'stories'): CheckResult[] {
-  const label = { scenarios: 'scenario', testCases: 'test case', stories: 'story' }[kind];
-  const prefix = { scenarios: 'TS', testCases: 'TC', stories: 'US' }[kind];
-  if (!extractItems(i.body).some((x) => x.prefix === prefix)) return [block('coverage', `No ${label}s found. Use IDs like ${prefix}-01.`)];
-  if (!i.docs.brd) return [warn('coverage', 'No approved BRD to check coverage against')];
-  const rows = buildMatrix({ ...i.docs, [kind]: i.body }, i.removed).filter((r) => !r.removed);
-  const missing = rows.filter((r) => r[kind].length === 0).map((r) => r.id);
-  if (missing.length) {
-    const plural = kind === 'stories' ? 'stories' : `${label}s`;
-    return [block('coverage', `No ${label} covers: ${missing.join(', ')}`, { fix: `Add ${plural} for ${missing.join(', ')}. Keep the existing ones and their IDs, and number the new ones after the last ID.` })];
-  }
-  return [pass('coverage', `Every requirement has a ${label} (${rows.length} of ${rows.length})`)];
+/** Every requirement in the BRD has at least one functional design item (MUFG's FDD is one-to-one with the BRD). */
+export function designCoverage(i: CheckInput): CheckResult[] {
+  if (!extractItems(i.body).some((x) => x.prefix === 'FD')) return [block('coverage', 'No functional design items found. Use IDs like FD-01.')];
+  if (!i.docs.brd) return [warn('coverage', 'No approved BRD to check the FDD against')];
+  const rows = buildMatrix({ brd: i.docs.brd, fdd: i.body }, i.removed).filter((r) => !r.removed);
+  const missing = rows.filter((r) => !r.design.length).map((r) => r.id);
+  if (missing.length) return [block('coverage', `No functional design item covers: ${missing.join(', ')}`, { fix: `Add functional design items for ${missing.join(', ')}. Keep the existing ones and their IDs, and number the new ones after the last ID.` })];
+  return [pass('coverage', `Every requirement has a functional design item (${rows.length} of ${rows.length})`)];
 }
 
-export function testTypes(body: string): CheckResult[] {
-  const types = extractItems(body).filter((i) => i.prefix === 'TC').map((i) => cellFor(i, /^type$/i).toLowerCase());
-  const missing = ['positive', 'negative', 'edge'].filter((t) => !types.some((x) => x.includes(t)));
-  return missing.length ? [warn('types', `No ${missing.join(' or ')} test cases`)] : [pass('types', 'Positive, negative and edge cases are all present')];
+/** Every item of one kind names at least one item it realises (FD → FR, DA → FR or FD, TD → FD). */
+export function links(body: string, prefix: string, targets: string[], what: string): CheckResult[] {
+  const items = extractItems(body).filter((i) => i.prefix === prefix && !i.struck);
+  const loose = items.filter((d) => !d.refs.some((r) => targets.some((t) => r.startsWith(`${t}-`)))).map((d) => d.id);
+  if (loose.length) return [block(`links:${prefix}`, `These items name no ${what}: ${loose.join(', ')}`, { fix: `Name the ${what} (${targets.map((t) => `${t}-…`).join(' or ')}) that ${loose.join(', ')} serve, or remove them if nothing needs them.` })];
+  return items.length ? [pass(`links:${prefix}`, `All ${items.length} ${prefix} items name the ${what} they serve`)] : [];
 }
 
-export function storyShape(body: string): CheckResult[] {
-  const stories = extractItems(body).filter((i) => i.prefix === 'US' && i.kind === 'section');
-  const out: CheckResult[] = [];
-  for (const s of stories) {
-    const b = s.body ?? '';
-    if (!/\bas an? .+,? i want/i.test(b)) out.push(block(`story:${s.id}`, `${s.id} has no "As a ..., I want ..., so that ..." sentence`, { fix: `Give ${s.id} a user story sentence: "As a ..., I want ..., so that ...".` }));
-    if (!/acceptance criteria/i.test(b) || !/\bgiven\b[\s\S]*\bthen\b/i.test(b)) out.push(block(`story:${s.id}:ac`, `${s.id} needs acceptance criteria in Given/When/Then form`, { fix: `Add acceptance criteria to ${s.id} in Given/When/Then form.` }));
-    if (!/^points:\s*\d+/im.test(b)) out.push(warn(`story:${s.id}:points`, `${s.id} has no story points`));
-    const covers = b.replace(/\*\*/g, '').match(/^covers:\s*(.+)$/im)?.[1] ?? '';
-    if (!/\bFR-\d+/.test(covers)) out.push({ ...warn(`story:${s.id}:covers`, `${s.id} covers no requirement. Link it to an FR, or check the story is needed.`), fix: `Link ${s.id} to the functional requirements it delivers in its Covers line, or remove it if no requirement needs it.` });
-  }
-  return out.length ? out : [pass('stories', `All ${stories.length} stories have a user story sentence and acceptance criteria`)];
+/** Every impacted data attribute in the DRD tab has a source-to-destination mapping in the DSD tab. */
+export function dataMappings(body: string): CheckResult[] {
+  if (!extractItems(body).some((x) => x.prefix === 'DA')) return [block('mappings', 'No impacted data attributes found. Use IDs like DA-01 in the DRD tab.')];
+  const unmapped = uncovered(body, 'DA', body, 'DS');
+  if (unmapped.length) return [block('mappings', `These data attributes have no source-to-destination mapping: ${unmapped.join(', ')}`, { fix: `Add a mapping row (DS-…) for ${unmapped.join(', ')} in the Data sourcing tab, with its source, destination and any transformation logic.` })];
+  const n = extractItems(body).filter((x) => x.prefix === 'DA').length;
+  return [pass('mappings', `Every data attribute has a source-to-destination mapping (${n} of ${n})`)];
+}
+
+/** Every functional design item has a technical design item. */
+export function technicalCoverage(i: CheckInput): CheckResult[] {
+  if (!extractItems(i.body).some((x) => x.prefix === 'TD')) return [block('coverage', 'No technical design items found. Use IDs like TD-01.')];
+  if (!i.docs.fdd) return [warn('coverage', 'No approved FDD to check the TDD against')];
+  const missing = uncovered(i.docs.fdd, 'FD', i.body, 'TD', i.removed);
+  if (missing.length) return [block('coverage', `No technical design item covers: ${missing.join(', ')}`, { fix: `Add technical design items for ${missing.join(', ')}. Keep the existing ones and their IDs, and number the new ones after the last ID.` })];
+  const n = extractItems(i.docs.fdd).filter((x) => x.prefix === 'FD' && !x.struck).length;
+  return [pass('coverage', `Every functional design item has a technical design item (${n} of ${n})`)];
+}
+
+/** A QA strategy decides, for every requirement in the BRD, whether it is in scope, so the RTM can show it. */
+export function scopeDecisions(i: CheckInput, label: 'SIT' | 'UAT'): CheckResult[] {
+  if (!i.docs.brd) return [];
+  const decided = scopeOf(i.body);
+  const reqs = buildMatrix({ brd: i.docs.brd }, i.removed).filter((r) => !r.removed).map((r) => r.id);
+  const open = reqs.filter((id) => !decided.get(id));
+  if (open.length) return [block('scope', `The ${label} scope does not decide: ${open.join(', ')}`, { fix: `In the Requirements in scope table, add a row for ${open.join(', ')} with Yes or No, and the reason when No.` })];
+  const inScope = reqs.filter((id) => decided.get(id) === 'Yes').length;
+  return [pass('scope', `${label} scope decided for every requirement: ${inScope} in, ${reqs.length - inScope} out`)];
+}
+
+/** Each BRD requirement carries a type, as MUFG's BRD does (functional, data, report, interface…). */
+export function requirementTypes(body: string): CheckResult[] {
+  const untyped = extractItems(body).filter((i) => i.prefix === 'FR' && !i.struck && !cellFor(i, /^type$/i)).map((i) => i.id);
+  return untyped.length ? [warn('types', `These requirements have no type: ${untyped.join(', ')}`)] : [];
 }
 
 /** Numbers that look like national IDs or card numbers should not reach the documents. */
@@ -162,24 +182,28 @@ export function runChecks(i: CheckInput): CheckResult[] {
     case 'intake':
       out.push(...inputsCited(i.body, i.inputs ?? []), ...partsUsed(i.body, i.inputTexts ?? []), ...openQuestions(i.body, i.answers));
       break;
-    case 'prd':
-      out.push(...sources(i.body, ['F'], 'feature', i.resolutions, i.docs.intake));
-      break;
     case 'brd':
       out.push(
         ...sources(i.body, ['FR', 'NFR'], 'requirement', i.resolutions, i.docs.intake),
+        ...requirementTypes(i.body),
         ...checklist(i.body, i.checklist, i.resolutions),
         ...intakeCompleteness(i.docs.intake, i.body, i.resolutions),
       );
       break;
-    case 'test-scenarios':
-      out.push(...coverage(i, 'scenarios'));
+    case 'fdd':
+      out.push(...links(i.body, 'FD', ['FR'], 'BRD requirement'), ...designCoverage(i));
       break;
-    case 'test-cases':
-      out.push(...testTypes(i.body), ...coverage(i, 'testCases'));
+    case 'dsd':
+      out.push(...links(i.body, 'DA', ['FR', 'FD'], 'requirement or design item'), ...dataMappings(i.body));
       break;
-    case 'stories':
-      out.push(...storyShape(i.body), ...coverage(i, 'stories'));
+    case 'tdd':
+      out.push(...links(i.body, 'TD', ['FD'], 'functional design item'), ...technicalCoverage(i));
+      break;
+    case 'sit-strategy':
+      out.push(...scopeDecisions(i, 'SIT'));
+      break;
+    case 'uat-strategy':
+      out.push(...scopeDecisions(i, 'UAT'));
       break;
   }
   out.push(...sensitiveData(i.body));

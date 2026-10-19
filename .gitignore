@@ -8,3 +8,10 @@ packages/vscode-extension/media/*.map
 projects/*/outputs/.prompt-*.md
 .preview/
 projects/*/outputs/
+
+# Client material never goes into Git: only the made-up sample project keeps its inputs.
+projects/*/inputs/
+!projects/sample-commercial-loan/inputs/
+
+# Internal meeting and discovery notes stay on this machine; the repository is public.
+docs/internal/

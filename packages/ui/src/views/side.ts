@@ -40,18 +40,18 @@ export function side(s: UiState): string {
       ${missing.length ? `<p class="gap">Not covered: ${shown}${more}</p>` : ''}</div>`;
   };
   const tracedPct = pct(c.fullyTraced, c.requirements);
-  const allWritten = written('test-scenarios') && written('test-cases') && written('stories');
+  const allWritten = written('fdd') && written('tdd') && written('sit-strategy') && written('uat-strategy');
 
   return `
     <section class="card"><div class="card-head"><h3>Approvals</h3><span class="num small"><b>${approved}</b> of ${stages.length} · ${approvalPct}%</span></div>
       ${bar(approvalPct, approvalPct === 100)}
       <ol class="stepper">${steps}</ol>
       <p class="small">Each step starts only after the one before it is approved.</p></section>
-    <section class="card"><div class="card-head"><h3>Traceability</h3>${c.requirements ? `<span class="small">${c.requirements} functional requirements</span>` : ''}</div>
+    <section class="card"><div class="card-head"><h3>Traceability</h3>${c.requirements ? `<span class="small">${c.requirements} BRD requirements</span>` : ''}</div>
       ${
         c.requirements
-          ? `<div class="kpi"><span class="kpi-n">${allWritten ? `${tracedPct}%` : '—'}</span><span class="kpi-l">${allWritten ? 'fully traced: each requirement has a scenario, a test case and a story' : 'fully traced, shown once scenarios, test cases and stories are all written'}</span></div>
-        ${traceRow('Test scenarios', 'test-scenarios', c.withScenario, c.missing.scenarios)}${traceRow('Test cases', 'test-cases', c.withTestCase, c.missing.testCases)}${traceRow('Stories', 'stories', c.withStory, c.missing.stories)}`
+          ? `<div class="kpi"><span class="kpi-n">${allWritten ? `${tracedPct}%` : '—'}</span><span class="kpi-l">${allWritten ? 'fully traced: each requirement has a functional and technical design, and a SIT and UAT scope decision' : 'fully traced, shown once the FDD, TDD and both QA strategies are written'}</span></div>
+        ${traceRow('Functional design (FDD)', 'fdd', c.withDesign, c.missing.design)}${traceRow('Technical design (TDD)', 'tdd', c.withTechnical, c.missing.technical)}${traceRow('SIT scope decided', 'sit-strategy', c.sitDecided, c.missing.sit)}${traceRow('UAT scope decided', 'uat-strategy', c.uatDecided, c.missing.uat)}`
           : '<p class="empty">Appears once the BRD lists requirements.</p>'
       }</section>
     <section class="card"><h3>Audit log</h3>${log.length ? `<ol class="log">${log.map((e) => `<li><time>${esc(time(e.at))}</time><span><b>${esc(e.actor)}</b> · ${esc(e.action)}${stageName(e.stage) ? ` ${esc(stageName(e.stage))}` : ''}${e.version ? ` v${esc(e.version)}` : ''}${e.detail ? `<em>${esc(e.detail)}</em>` : ''}</span></li>`).join('')}</ol>` : '<p class="empty">Every action, by people and by agents, is listed here.</p>'}

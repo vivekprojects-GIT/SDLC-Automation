@@ -27,7 +27,7 @@ export function inputsView(s: UiState): string {
       <p class="meta">Template pack: ${esc(snap.project.templatePack)} · Folder: projects/${esc(snap.project.id)}</p></div></header>
     <section class="card"><div class="card-head"><h3>Requirement inputs</h3><span class="row-actions"><button class="btn sm" data-act="addInputs">Add files</button><button class="btn sm" data-act="openInputs">Open inputs folder</button></span></div>
       ${list(docs, 'No files yet. Add requirement notes, meeting transcripts, existing documents or legacy exports.')}
-      <p class="hint">Readable: .md, .txt, .csv, .docx, .xlsx. PDF is not supported yet.</p></section>
+      <p class="hint">Readable: .md, .txt, .csv, .docx, .xlsx, and Teams or Zoom transcripts (.vtt, .srt). PDF is not supported yet.</p></section>
     <section class="card"><h3>Figma frames</h3>${list(figma, 'No Figma frames yet. Export frames as PNG, or as a short description in .md, into inputs/figma/.')}</section>
     <section class="card cta">${cta}</section>`;
 }

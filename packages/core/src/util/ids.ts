@@ -1,6 +1,7 @@
-const PREFIXES = 'BO|BR|FR|NFR|F|TS|TC|EP|US|Q';
 
-/** Matches every ID the pipeline uses, e.g. FR-01, TC-12, US-3. */
+const PREFIXES = 'BO|BR|FR|NFR|FD|DA|DS|TD|Q';
+
+/** Matches every ID the pipeline uses, e.g. FR-01, FD-04, DA-07, TD-02. */
 export const ID_PATTERN = new RegExp(`\\b(?:${PREFIXES})-\\d{1,4}\\b`, 'g');
 const WHOLE_ID = new RegExp(`^(?:${PREFIXES})-\\d{1,4}$`);
 

@@ -20,7 +20,7 @@ export interface ProjectConfig {
     maxInputTokens?: number;
     /** How long one reply can safely be. Longer documents are written in pieces. */
     maxOutputTokens: number;
-    /** Optional: units per piece (scenarios for test cases, requirements for stories), instead of the automatic size. */
+    /** Optional: units per piece (requirements for the FDD, design items for the TDD), instead of the automatic size. */
     chunkSize?: number;
   };
 }
@@ -90,12 +90,12 @@ export async function listProjects(toolRoot: string): Promise<{ id: string; name
   return out;
 }
 
-/** Walks up from a folder to the repo root: the folder that has content/stages. */
+/** Walks up from a folder to the repo root: the folder that has content/steps. */
 export async function findToolRoot(start: string): Promise<string | undefined> {
   let dir = path.resolve(start);
   for (;;) {
     try {
-      await fs.access(path.join(dir, 'content', 'stages'));
+      await fs.access(path.join(dir, 'content', 'steps'));
       return dir;
     } catch {
       const parent = path.dirname(dir);

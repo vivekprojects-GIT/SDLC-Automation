@@ -74,27 +74,41 @@ export interface StageSnapshot {
   approvedAt?: string;
   history: HistoryEntry[];
   questions?: Question[];
+  /** How the deliverable is exported for Planview/PPP, and where. */
+  exportAs: 'word' | 'excel';
+  deliverable: string;
 }
 
 export interface MatrixRow {
   id: string;
   requirement: string;
+  type: string;
   source: string;
-  scenarios: string[];
-  testCases: string[];
-  stories: string[];
+  priority: string;
+  /** Functional design items (FD) that realise the requirement. */
+  design: string[];
+  /** Data attributes (DA) in the DRD that serve it. */
+  data: string[];
+  /** Technical design items (TD) that build it. */
+  technical: string[];
+  /** Whether the SIT and UAT strategies put it in scope: Yes, No, or empty when not decided yet. */
+  sit: string;
+  uat: string;
   removed: boolean;
 }
 
 export interface Coverage {
   requirements: number;
-  withScenario: number;
-  withTestCase: number;
-  withStory: number;
-  /** Requirements with a scenario, a test case and a story. */
+  withDesign: number;
+  withData: number;
+  withTechnical: number;
+  /** Requirements whose SIT (or UAT) scope is decided, in or out. */
+  sitDecided: number;
+  uatDecided: number;
+  /** Requirements with a functional and technical design, and a SIT and UAT scope decision. */
   fullyTraced: number;
-  /** Requirement IDs that each kind of document does not cover yet. */
-  missing: { scenarios: string[]; testCases: string[]; stories: string[] };
+  /** Requirement IDs each document does not cover yet. */
+  missing: { design: string[]; technical: string[]; sit: string[]; uat: string[] };
 }
 
 export interface PipelineSnapshot {
@@ -111,8 +125,8 @@ export interface PipelineSnapshot {
 }
 
 export interface ExportResult {
+  /** The Planview/PPP-ready files, relative to the project folder. */
   files: string[];
-  jiraCsv: string;
   matrix: MatrixRow[];
-  counts: { epics: number; stories: number; subTasks: number };
+  coverage: Coverage;
 }

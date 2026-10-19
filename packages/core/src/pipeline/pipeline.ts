@@ -1,12 +1,13 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { loadChecklist, loadStageContent, loadTemplate, type StageContent } from '../content';
+import { loadChecklist, loadStageContent, loadTemplate, loadWordStyles, type StageContent } from '../content';
 import { fitInputs, messageTokens } from '../context/budget';
 import { listInputs, readInputs, type InputFile } from '../context/inputs';
 import { buildMessages, type PromptInput, type UpstreamDoc } from '../context/prompt';
 import { docFile, hashBody, readDoc, relToProject, writeDoc } from '../documents';
 import { PipelineError } from '../errors';
-import { parseStories, toJiraCsv } from '../export/jira';
+import { markdownToWorkbook, rtmToExcel } from '../export/excel';
+import { markdownToWord, type DeliverableMeta } from '../export/word';
 import { appendAudit, readAudit } from '../governance/audit';
 import { emptyStage, loadState, saveState, type PipelineState, type StageState } from '../governance/state';
 import { FIRST_DRAFT, approvedVersion, nextRevision } from '../governance/versions';
@@ -15,7 +16,7 @@ import { parseQuestions } from '../guardrails/questions';
 import type { LlmMessage, LlmProvider } from '../llm/provider';
 import { loadProject, type ProjectConfig } from '../project';
 import { STAGES, type StageKey } from '../stages/registry';
-import { buildMatrix, coverageOf, matrixToCsv, matrixToMarkdown } from '../trace/matrix';
+import { buildMatrix, coverageOf, matrixToCsv, matrixToMarkdown, type TraceDocs } from '../trace/matrix';
 import type { Actor, ExportResult, PipelineSnapshot, Resolution, StageSnapshot, StageStatus } from '../types';
 import { ID_PATTERN } from '../util/ids';
 import { cleanOutput, setTableCell } from '../util/markdown';
@@ -41,7 +42,9 @@ const STATUS_WORDS: Record<StageStatus, string> = {
   stale: 'out of date because an earlier document changed',
 };
 
-const EXPORT_FILES = ['outputs/jira-import.csv', 'outputs/traceability.md', 'outputs/traceability.csv'];
+/** The RTM, kept beside the documents for review in the editor; the Planview/PPP copies go to outputs/deliverables/. */
+const RTM_FILES = ['outputs/rtm.md', 'outputs/rtm.csv'];
+const DELIVERABLES = 'outputs/deliverables';
 const DEFAULT_INPUT_TOKENS = 60_000;
 const QUALITY_CEILING = 128_000;
 
@@ -280,7 +283,7 @@ export class Pipeline {
         }
       }
       for (const [id, decision] of Object.entries(st.resolutions)) {
-        if (decision === 'remove' && new RegExp(`^${ID_PATTERN.source}$`).test(id)) body = setTableCell(body, id, (h) => /^id$/i.test(h), `~~${id}~~`);
+        if (decision === 'remove' && new RegExp(`^${ID_PATTERN.source}$`).test(id)) body = setTableCell(body, id, (h) => /^(?:[a-z]+ )?id$/i.test(h), `~~${id}~~`); // "ID", "BRD ID", "FDD ID"…
       }
 
       const version = approvedVersion(st.version!);
@@ -382,34 +385,85 @@ export class Pipeline {
     return this.exclusive(() => this.syncEditsInner(key, actor));
   }
 
-  /** Writes the Jira import file and the traceability matrix. Needs every step approved. */
+  /**
+   * Writes every approved deliverable for Planview/PPP (the BRD, FDD and DSD as Excel workbooks with
+   * one tab per section, the others as Word) and the RTM with its Transition to BAU plan. Needs every step approved.
+   */
   exportAll(actor: Actor): Promise<ExportResult> {
     return this.exclusive(async () => {
       const pending = this.order.filter((k) => this.status(k) !== 'approved');
       if (pending.length) throw new PipelineError('Export needs every document approved first.', pending.map((k) => `${STAGES[k].title} is ${STATUS_WORDS[this.status(k)]}.`));
-      const removed = this.removedIds();
-      const docs = {
-        brd: await this.readDocument('brd'),
-        scenarios: await this.readDocument('test-scenarios'),
-        testCases: await this.readDocument('test-cases'),
-        stories: await this.readDocument('stories'),
-      };
-      const matrix = buildMatrix(docs, removed);
-      const epics = parseStories(docs.stories ?? '');
-      const jiraCsv = toJiraCsv(epics);
+      const matrix = buildMatrix(await this.traceDocs(), this.removedIds());
+      const coverage = coverageOf(matrix);
+      const at = this.now();
       const out = (rel: string) => path.join(this.project.dir, rel);
-      await fs.writeFile(out(EXPORT_FILES[0]), jiraCsv, 'utf8');
-      await fs.writeFile(out(EXPORT_FILES[1]), matrixToMarkdown(matrix, this.project.name, this.now()), 'utf8');
-      await fs.writeFile(out(EXPORT_FILES[2]), matrixToCsv(matrix), 'utf8');
-      const counts = {
-        epics: epics.length,
-        stories: epics.reduce((n, e) => n + e.stories.length, 0),
-        subTasks: epics.reduce((n, e) => n + e.stories.reduce((m, s) => m + s.subTasks.length, 0), 0),
-      };
-      await this.audit('export', 'exported', actor.name, '', `${counts.epics} epics, ${counts.stories} stories, ${counts.subTasks} sub-tasks`);
+      await fs.mkdir(out(DELIVERABLES), { recursive: true });
+      await this.writeFile(RTM_FILES[0], matrixToMarkdown(matrix, this.project.name, at));
+      await this.writeFile(RTM_FILES[1], matrixToCsv(matrix));
+
+      const files: string[] = [];
+      const styles = await loadWordStyles(this.opts.toolRoot, this.project.templatePack);
+      for (const key of this.order) {
+        const def = STAGES[key];
+        const doc = await readDoc(this.documentPath(key));
+        if (!doc) continue;
+        const meta = this.deliverableMeta(key, doc.meta);
+        const rel = this.deliverablePath(key);
+        await this.writeFile(rel, def.exportAs === 'excel' ? markdownToWorkbook(doc.body, meta) : await markdownToWord(doc.body, meta, { styles }));
+        files.push(rel);
+      }
+      const rtm = `${DELIVERABLES}/rtm.xlsx`;
+      await this.writeFile(rtm, rtmToExcel(matrix, coverage, this.project.name, at));
+      files.push(rtm);
+
+      await this.audit('export', 'exported', actor.name, '', `${files.length} deliverables; ${coverage.fullyTraced} of ${coverage.requirements} requirements fully traced`);
       this.emit({ type: 'changed' });
-      return { files: EXPORT_FILES, jiraCsv, matrix, counts };
+      return { files, matrix, coverage };
     });
+  }
+
+  /** Where a step's Planview/PPP copy is written: outputs/deliverables/<same name>.docx or .xlsx. */
+  deliverablePath(key: StageKey): string {
+    const md = path.basename(this.documentPath(key));
+    return `${DELIVERABLES}/${md.replace(/\.md$/, STAGES[key].exportAs === 'excel' ? '.xlsx' : '.docx')}`;
+  }
+
+  private deliverableMeta(key: StageKey, m: Record<string, unknown>): DeliverableMeta {
+    const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
+    return {
+      document: str(m.document) ?? STAGES[key].docTitle,
+      project: str(m.project) ?? this.project.name,
+      version: str(m.version),
+      status: str(m.status),
+      owner: str(m.owner) ?? this.project.owners[key],
+      writtenBy: str(m.generated_by),
+      approvedBy: str(m.approved_by),
+      approvedAt: str(m.approved_at),
+      template: str(m.template),
+    };
+  }
+
+  private async writeFile(rel: string, data: string | Buffer): Promise<void> {
+    const file = path.join(this.project.dir, rel);
+    try {
+      await fs.writeFile(file, data);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'EBUSY' || code === 'EPERM') throw new PipelineError(`${path.basename(file)} is open in another program. Close it, then export again.`);
+      throw err;
+    }
+  }
+
+  /** The approved (or current) documents the trace is built from. */
+  private async traceDocs(): Promise<TraceDocs> {
+    return {
+      brd: await this.readDocument('brd'),
+      fdd: await this.readDocument('fdd'),
+      dsd: await this.readDocument('dsd'),
+      tdd: await this.readDocument('tdd'),
+      sit: await this.readDocument('sit-strategy'),
+      uat: await this.readDocument('uat-strategy'),
+    };
   }
 
   /** The full prompt for one step, for the Copilot chat path (`sdlc prompt`). */
@@ -448,13 +502,15 @@ export class Pipeline {
         approvedBy: st?.approvedBy,
         approvedAt: st?.approvedAt,
         history: st?.history ?? [],
+        exportAs: def.exportAs,
+        deliverable: this.deliverablePath(key),
       };
       if (key === 'intake' && body) snap.questions = parseQuestions(body).map((q) => ({ ...q, answer: st?.answers[q.id] ?? q.answer }));
       stages.push(snap);
     }
-    const matrix = buildMatrix({ brd: documents.brd, scenarios: documents['test-scenarios'], testCases: documents['test-cases'], stories: documents.stories }, this.removedIds());
+    const matrix = buildMatrix({ brd: documents.brd, fdd: documents.fdd, dsd: documents.dsd, tdd: documents.tdd, sit: documents['sit-strategy'], uat: documents['uat-strategy'] }, this.removedIds());
     const exportFiles: string[] = [];
-    for (const rel of EXPORT_FILES) {
+    for (const rel of [...this.order.map((k) => this.deliverablePath(k)), `${DELIVERABLES}/rtm.xlsx`, ...RTM_FILES]) {
       try {
         await fs.access(path.join(this.project.dir, rel));
         exportFiles.push(rel);
@@ -509,7 +565,7 @@ export class Pipeline {
   }
 
   private requireProvider(): LlmProvider {
-    if (!this.opts.provider) throw new PipelineError('No AI is connected.', ['Sign in to GitHub Copilot in VS Code and use the SDLC Tool, or run /sdlc-next in Copilot Chat.']);
+    if (!this.opts.provider) throw new PipelineError('No AI is connected.', ['Sign in to GitHub Copilot in VS Code and use SDLC CAPM, or run /sdlc-next in Copilot Chat.']);
     return this.opts.provider;
   }
 
@@ -628,8 +684,8 @@ export class Pipeline {
       removed: this.removedIds(),
       docs: {
         brd: before('brd') ? await this.readDocument('brd') : undefined,
-        scenarios: key === 'test-cases' && before('test-scenarios') ? await this.readDocument('test-scenarios') : undefined,
-        intake: (key === 'brd' || key === 'prd') && before('intake') ? await this.readDocument('intake') : undefined,
+        fdd: before('fdd') ? await this.readDocument('fdd') : undefined,
+        intake: key === 'brd' && before('intake') ? await this.readDocument('intake') : undefined,
       },
       checklist: key === 'brd' ? await loadChecklist(this.opts.toolRoot) : [],
       notes: st.notes,

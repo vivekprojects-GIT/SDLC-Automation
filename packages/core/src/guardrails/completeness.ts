@@ -15,7 +15,7 @@ export interface KeyFact {
 }
 
 const FILE = /([\w./-]+?)\.(?:md|txt|csv|docx|xlsx|xls|json|png|jpe?g)\b/i;
-const LOCATOR = /§\s*\d+(?:\.\d+)*|\b\d{1,2}:\d{2}\b|\brow\s*\d+/i;
+const LOCATOR = /§\s*\d+(?:\.\d+)*|\b\d{1,2}:\d{2}(?::\d{2})?\b|\brow\s*\d+/i;
 // A value such as 1.25x, 75%, $10M or 5 seconds. Not followed by a letter, or by ".digit" (so "1" is never cut out of "1.25").
 const NUMBER = /\$?\d[\d,]*(?:\.\d+)?\s?(?:x|%|m|k|bn|million|years?|days?|hours?|minutes?|seconds?)?(?!\w)(?!\.\d)/gi;
 
@@ -125,7 +125,8 @@ function partsOf(text: string): string[] {
   for (const line of text.split('\n')) {
     const section = line.match(/^#{1,6}\s*(§\s*\d+(?:\.\d+)*)/);
     if (section) parts.add(locOf(section[1]));
-    const stamp = line.match(/^\s*\[?(\d{1,2}:\d{2})\]?/);
+    // [12:40], or [1:05:09] in meetings longer than an hour.
+    const stamp = line.match(/^\s*\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?/);
     if (stamp) parts.add(stamp[1]);
   }
   return [...parts];

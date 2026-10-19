@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "SDLC Tool with Copilot",
+      "name": "SDLC CAPM with Copilot",
       "type": "extensionHost",
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-extension", "${workspaceFolder}"],

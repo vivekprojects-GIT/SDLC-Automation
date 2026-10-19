@@ -1,15 +1,15 @@
 {
-  "name": "sdlc-automation-vscode",
-  "displayName": "SDLC Automation Tool",
-  "description": "Turns requirements and Figma screens into an approved PRD, BRD, test cases and Jira stories using GitHub Copilot, with a human review at every step.",
-  "publisher": "sdlc-automation",
+  "name": "sdlc-capm-vscode",
+  "displayName": "SDLC CAPM",
+  "description": "Writes MUFG's PDLC Planning deliverables (BRD, FDD, SIT and UAT QA Strategies, DUT, SIT and UAT cases and the RTM) with GitHub Copilot, with a named owner approving each one, ready for Planview/PPP.",
+  "publisher": "sdlc-capm",
   "version": "0.1.0",
   "private": true,
   "license": "UNLICENSED",
   "engines": { "vscode": "^1.95.0" },
   "categories": ["Other"],
   "main": "./dist/extension.js",
-  "activationEvents": ["workspaceContains:content/stages"],
+  "activationEvents": ["workspaceContains:content/steps"],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
@@ -18,22 +18,22 @@
   },
   "contributes": {
     "commands": [
-      { "command": "sdlcAutomation.open", "title": "Open SDLC Automation Tool", "category": "SDLC" }
+      { "command": "sdlcCapm.open", "title": "Open SDLC CAPM", "category": "SDLC CAPM" }
     ],
     "configuration": {
-      "title": "SDLC Automation",
+      "title": "SDLC CAPM",
       "properties": {
-        "sdlcAutomation.model": {
+        "sdlcCapm.model": {
           "type": "string",
           "default": "",
           "description": "The Copilot model that writes the documents. Empty means Auto: the most capable available model. Easiest to change from the model list in the tool's top bar."
         },
-        "sdlcAutomation.reviewerName": {
+        "sdlcCapm.reviewerName": {
           "type": "string",
           "default": "",
           "description": "Your name as it appears in approvals and the audit log. Defaults to your computer user name."
         },
-        "sdlcAutomation.autoAdvance": {
+        "sdlcCapm.autoAdvance": {
           "type": "boolean",
           "default": true,
           "description": "Start the next step automatically after an approval."
@@ -43,7 +43,7 @@
   },
   "scripts": {
     "build": "node build.mjs",
-    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license -o sdlc-automation.vsix"
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license -o sdlc-capm.vsix"
   },
   "dependencies": {
     "@sdlc/core": "0.1.0"

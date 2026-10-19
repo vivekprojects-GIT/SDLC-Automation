@@ -1,5 +1,5 @@
 {
-  "name": "sdlc-automation",
+  "name": "sdlc-capm",
   "private": true,
   "version": "0.1.0",
   "description": "Turns basic requirements and Figma screens into an approved PRD, BRD, test cases and Jira stories, with a human review at every step.",
@@ -10,12 +10,12 @@
     "packages/vscode-extension"
   ],
   "scripts": {
-    "build": "npm run build -w @sdlc/ui && npm run build -w @sdlc/cli && npm run build -w sdlc-automation-vscode",
+    "build": "npm run build -w @sdlc/ui && npm run build -w @sdlc/cli && npm run build -w sdlc-capm-vscode",
     "test": "vitest run",
     "typecheck": "tsc -p packages/core && tsc -p packages/cli && tsc -p packages/ui && tsc -p packages/vscode-extension",
     "sdlc": "node packages/cli/dist/sdlc.js",
-    "package-extension": "npm run build && npm run package -w sdlc-automation-vscode",
-    "install-extension": "npm run package-extension && code --install-extension packages/vscode-extension/sdlc-automation.vsix --force"
+    "package-extension": "npm run build && npm run package -w sdlc-capm-vscode",
+    "install-extension": "npm run package-extension && code --install-extension packages/vscode-extension/sdlc-capm.vsix --force"
   },
   "devDependencies": {
     "@types/node": "20.17.6",

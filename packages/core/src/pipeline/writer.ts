@@ -1,19 +1,18 @@
 import { messageTokens } from '../context/budget';
-import { buildMessages, type EpicPlan, type Piece, type PromptInput, type UpstreamDoc } from '../context/prompt';
+import { buildMessages, type PieceUnit, type PromptInput, type UpstreamDoc } from '../context/prompt';
 import { PipelineError } from '../errors';
-import { parseStories } from '../export/jira';
 import type { LlmMessage, LlmProvider } from '../llm/provider';
-import type { StageKey } from '../stages/registry';
-import { cellFor, extractItems, requirementIds } from '../trace/items';
-import { buildMatrix } from '../trace/matrix';
-import { idsIn, maxNumber, padId, prefixOf } from '../util/ids';
-import { cleanOutput, filterTableRows, firstCell, normalizeHeading, parseSections, parseTables, toLf } from '../util/markdown';
+import type { ItemPrefix, StageKey } from '../stages/registry';
+import { extractItems, requirementIds } from '../trace/items';
+import { buildMatrix, uncovered, type TraceDocs } from '../trace/matrix';
+import { idsIn, maxNumber, prefixOf } from '../util/ids';
+import { cleanOutput, firstCell, normalizeHeading, parseSections, parseTables, toLf } from '../util/markdown';
 
 /**
- * How a document gets written: in one request when it fits, otherwise in natural pieces
- * (test cases per group of scenarios, stories one group of epics at a time after an epic plan).
- * Afterwards every requirement it should cover is checked, and the missing ones are written
- * automatically, so a reply that was cut short does not reach the reviewer with gaps.
+ * How a document gets written: in one request when it fits, otherwise in pieces of a few
+ * requirements (FDD) or functional design items (TDD) at a time. Afterwards every requirement
+ * or design item it should cover is checked, and the missing ones are written automatically,
+ * so a reply that was cut short does not reach the reviewer with gaps.
  */
 
 export interface WriteContext {
@@ -33,29 +32,27 @@ export interface WriteResult {
   body: string;
   /** How many writing requests the document took (1 when written whole). */
   pieces: number;
-  /** Requirements whose missing items were written automatically after the first pass. */
+  /** Requirements or design items whose missing items were written automatically after the first pass. */
   filled: string[];
 }
 
-/** Rough reply length per unit: one scenario's test cases, one requirement's stories. */
-const TOKENS_PER_UNIT = { 'test-cases': 450, stories: 350 } as const;
-const GAP_ROUNDS = 2;
-
-type Kind = { prefix: 'TS' | 'TC' | 'US'; column: 'scenarios' | 'testCases' | 'stories'; plural: string };
-const COVERAGE: Partial<Record<StageKey, Kind>> = {
-  'test-scenarios': { prefix: 'TS', column: 'scenarios', plural: 'scenarios' },
-  'test-cases': { prefix: 'TC', column: 'testCases', plural: 'test cases' },
-  stories: { prefix: 'US', column: 'stories', plural: 'stories' },
+/** What each item-writing step covers, and roughly how long its reply is per unit. */
+const PLANS: Partial<Record<StageKey, { unit: PieceUnit; tokensPerUnit: number }>> = {
+  fdd: { unit: 'FR', tokensPerUnit: 300 },
+  tdd: { unit: 'FD', tokensPerUnit: 350 },
 };
+const GAP_ROUNDS = 2;
+const NAMES: Record<ItemPrefix, string> = { FD: 'functional design items', DA: 'data attributes', TD: 'technical design items' };
 
 export async function writeDocument(c: WriteContext): Promise<WriteResult> {
   const def = c.base.def;
   const whole = buildMessages(c.base);
-  const split = !!def.chunkPrefix && (messageTokens(whole) > c.maxTokens || expectedReply(c) > c.maxOutputTokens);
+  const plan = PLANS[def.key];
+  const split = !!plan && (messageTokens(whole) > c.maxTokens || units(c).length * plan.tokensPerUnit > c.maxOutputTokens);
   let body: string;
   let pieces = 1;
   if (split) {
-    ({ body, pieces } = def.key === 'stories' ? await storiesByEpic(c) : await testCasesByScenario(c));
+    ({ body, pieces } = await byParts(c));
   } else {
     assertFits(c, whole, `The ${def.title} step`);
     body = await ask(c, whole);
@@ -73,149 +70,93 @@ export async function reviseDocument(c: WriteContext, messages: LlmMessage[]): P
 
 // ---------------------------------------------------------------- pieces
 
-async function testCasesByScenario(c: WriteContext): Promise<{ body: string; pieces: number }> {
-  const removed = c.base.removed;
-  const scenarios = extractItems(upstreamBody(c, 'test-scenarios') ?? '').filter((i) => i.prefix === 'TS' && !i.struck);
-  const units = scenarios.length
-    ? scenarios.map((s) => ({ ts: [s.id], frs: s.refs.filter((r) => r.startsWith('FR-') && !removed.includes(r)) }))
-    : requirementIds(upstreamBody(c, 'brd'), removed).map((fr) => ({ ts: [] as string[], frs: [fr] }));
-  const size = c.chunkSize ?? Math.max(1, Math.floor(c.maxOutputTokens / TOKENS_PER_UNIT['test-cases']));
-  const queue = groups(units, size);
+async function byParts(c: WriteContext): Promise<{ body: string; pieces: number }> {
+  const plan = PLANS[c.key]!;
+  const prefix = c.base.def.items!;
+  const size = c.chunkSize ?? Math.max(1, Math.floor(c.maxOutputTokens / plan.tokensPerUnit));
+  const queue = groups(units(c), size);
   const outputs: string[] = [];
   let startAt = 1;
   while (queue.length) {
     const group = queue.shift()!;
-    const ts = group.flatMap((u) => u.ts);
-    const frs = unique(group.flatMap((u) => u.frs));
-    const piece: Piece = ts.length ? { kind: 'scenarios', ids: frs, scenarios: ts, startAt } : { kind: 'requirements', ids: frs, startAt, epicStartAt: 1 };
-    const messages = buildMessages({ ...c.base, upstream: onlyThese(c.base.upstream, frs, ts.length ? ts : undefined), piece });
+    const messages = buildMessages({ ...c.base, upstream: onlyThese(c, group, plan.unit), piece: { kind: 'part', unit: plan.unit, ids: group, startAt } });
     if (messageTokens(messages) > c.maxTokens && group.length > 1) {
       queue.unshift(...halves(group));
       continue;
     }
     assertFits(c, messages, `One part of the ${c.base.def.title} step`);
-    c.progress(`Writing test cases for ${span(ts.length ? ts : frs)}`);
+    c.progress(`Writing ${NAMES[prefix]} for ${span(group)}`);
     const out = await ask(c, messages);
     outputs.push(out);
-    startAt = Math.max(startAt, maxNumber(idsIn(out), 'TC') + 1);
+    startAt = Math.max(startAt, maxNumber(idsIn(out), prefix) + 1);
   }
-  return { body: mergeParts(outputs, 'TC'), pieces: outputs.length };
+  return { body: mergeParts(outputs, prefix), pieces: outputs.length };
 }
 
-async function storiesByEpic(c: WriteContext): Promise<{ body: string; pieces: number }> {
-  const reqs = requirementIds(upstreamBody(c, 'brd'), c.base.removed);
-  const perEpicBudget = c.chunkSize ? c.chunkSize * TOKENS_PER_UNIT.stories : c.maxOutputTokens;
-
-  // First a short plan: which epics, and which requirements each covers.
-  let epics: EpicPlan[] = [];
-  const plan = buildMessages({ ...c.base, piece: { kind: 'epic-plan', ids: reqs } });
-  if (messageTokens(plan) <= c.maxTokens) {
-    c.progress('Planning the epics');
-    epics = parseEpicPlan(cleanOutput(await c.provider.complete(plan)), reqs);
-  }
-  if (!epics.length) {
-    const size = Math.max(1, Math.floor(perEpicBudget / TOKENS_PER_UNIT.stories));
-    epics = groups(reqs, size).map((covers, i) => ({ id: padId('EP', i + 1), name: '', covers }));
-  }
-
-  // Then the stories, a few epics at a time.
-  const queue: EpicPlan[][] = [];
-  let current: EpicPlan[] = [];
-  let load = 0;
-  for (const e of epics) {
-    const cost = e.covers.length * TOKENS_PER_UNIT.stories;
-    if (current.length && load + cost > perEpicBudget) {
-      queue.push(current);
-      current = [];
-      load = 0;
-    }
-    current.push(e);
-    load += cost;
-  }
-  if (current.length) queue.push(current);
-
-  const outputs: string[] = [];
-  let startAt = 1;
-  while (queue.length) {
-    const group = queue.shift()!;
-    const frs = unique(group.flatMap((e) => e.covers));
-    const messages = buildMessages({ ...c.base, upstream: onlyThese(c.base.upstream, frs), piece: { kind: 'epics', ids: frs, epics: group, startAt } });
-    if (messageTokens(messages) > c.maxTokens && group.length > 1) {
-      queue.unshift(...halves(group));
-      continue;
-    }
-    assertFits(c, messages, `One part of the ${c.base.def.title} step`);
-    c.progress(`Writing stories for ${group.map((e) => e.id).join(', ')}`);
-    const out = await ask(c, messages);
-    outputs.push(out);
-    startAt = Math.max(startAt, maxNumber(idsIn(out), 'US') + 1);
-  }
-  return { body: mergeParts(outputs, 'US'), pieces: outputs.length };
+/** The requirements (or design items) a step must cover, in order. */
+function units(c: WriteContext): string[] {
+  const plan = PLANS[c.key];
+  if (!plan) return [];
+  if (plan.unit === 'FR') return requirementIds(upstreamBody(c, 'brd'), c.base.removed);
+  return designIds(upstreamBody(c, 'fdd'), c.base.removed);
 }
 
-/** Reads "## EP-01 Name" + "Covers: FR-.." pairs. Each requirement goes to its first epic; any left over get an epic of their own. */
-export function parseEpicPlan(text: string, reqs: string[]): EpicPlan[] {
-  const seen = new Set<string>();
-  const epics: EpicPlan[] = [];
-  for (const s of parseSections(text)) {
-    const m = s.level === 2 && s.title.replace(/[*_`]/g, '').match(/^(EP-\d+)\s*[:.-]?\s*(.*)$/);
-    if (!m) continue;
-    const covers = idsIn(s.body.match(/^\s*\**covers:?\**:?\s*(.+)$/im)?.[1] ?? s.body).filter((id) => reqs.includes(id) && !seen.has(id));
-    covers.forEach((id) => seen.add(id));
-    if (covers.length) epics.push({ id: m[1], name: m[2].trim(), covers });
-  }
-  const left = reqs.filter((r) => !seen.has(r));
-  if (epics.length && left.length) epics.push({ id: padId('EP', maxNumber(epics.map((e) => e.id), 'EP') + 1), name: 'Other requirements', covers: left });
-  return epics;
+function designIds(fdd: string | undefined, removed: string[]): string[] {
+  return [...new Set(extractItems(fdd ?? '').filter((i) => i.prefix === 'FD' && !i.struck && !removed.includes(i.id)).map((i) => i.id))];
 }
 
 // ---------------------------------------------------------------- gaps
 
 async function fillGaps(c: WriteContext, body: string): Promise<{ body: string; filled: string[] }> {
-  const kind = COVERAGE[c.key];
-  if (!kind) return { body, filled: [] };
+  const plan = PLANS[c.key];
+  const prefix = c.base.def.items;
+  if (!plan || !prefix) return { body, filled: [] };
   const filled: string[] = [];
   for (let round = 0; round < GAP_ROUNDS; round++) {
-    const missing = missingCoverage(c, body, kind);
+    const missing = missingUnits(c, body);
     if (!missing.length) break;
-    const ids = idsIn(body);
-    const scenarios = c.key === 'test-cases' ? scenariosFor(c, missing) : undefined;
     const messages = buildMessages({
       ...c.base,
       mode: 'draft',
       current: undefined,
       comment: undefined,
-      upstream: onlyThese(c.base.upstream, missing, scenarios?.length ? scenarios : undefined),
-      piece: { kind: 'gaps', ids: missing, startAt: maxNumber(ids, kind.prefix) + 1, epicStartAt: maxNumber(ids, 'EP') + 1 },
+      upstream: onlyThese(c, missing, plan.unit),
+      piece: { kind: 'gaps', unit: plan.unit, ids: missing, startAt: maxNumber(idsIn(body), prefix) + 1 },
     });
     if (messageTokens(messages) > c.maxTokens) break; // leave it to the coverage check and the reviewer
-    c.progress(`Writing the missing ${kind.plural} for ${missing.join(', ')}`);
-    body = mergeParts([body, await ask(c, messages)], kind.prefix);
-    const still = missingCoverage(c, body, kind);
+    c.progress(`Writing the missing ${NAMES[prefix]} for ${missing.join(', ')}`);
+    body = mergeParts([body, await ask(c, messages)], prefix);
+    const still = missingUnits(c, body);
     filled.push(...missing.filter((m) => !still.includes(m)));
   }
   return { body, filled };
 }
 
-function missingCoverage(c: WriteContext, body: string, kind: Kind): string[] {
+/** The requirements (or design items) this draft does not cover yet. */
+export function missingUnits(c: Pick<WriteContext, 'key' | 'base'>, body: string): string[] {
   const brd = upstreamBody(c, 'brd');
-  if (!brd) return [];
-  const docs = { brd, scenarios: c.key === 'test-cases' ? upstreamBody(c, 'test-scenarios') : undefined, [kind.column]: body };
-  return buildMatrix(docs, c.base.removed)
-    .filter((r) => !r.removed && r[kind.column].length === 0)
-    .map((r) => r.id);
+  const fdd = upstreamBody(c, 'fdd');
+  const removed = c.base.removed;
+  switch (c.key) {
+    case 'fdd':
+      return brd ? missingDesign({ brd, fdd: body }, removed) : [];
+    case 'tdd':
+      return fdd ? uncovered(fdd, 'FD', body, 'TD', removed) : [];
+    default:
+      return [];
+  }
 }
 
-function scenariosFor(c: WriteContext, frs: string[]): string[] {
-  return extractItems(upstreamBody(c, 'test-scenarios') ?? '')
-    .filter((i) => i.prefix === 'TS' && i.refs.some((r) => frs.includes(r)))
-    .map((i) => i.id);
+function missingDesign(docs: TraceDocs, removed: string[]): string[] {
+  return buildMatrix(docs, removed)
+    .filter((r) => !r.removed && r.design.length === 0)
+    .map((r) => r.id);
 }
 
 // ---------------------------------------------------------------- replies
 
 async function ask(c: WriteContext, messages: LlmMessage[]): Promise<string> {
-  return repairCutOff(cleanOutput(await c.provider.complete(messages)), COVERAGE[c.key]?.prefix);
+  return repairCutOff(cleanOutput(await c.provider.complete(messages)), c.base.def.items);
 }
 
 function assertFits(c: WriteContext, messages: LlmMessage[], what: string, fix = 'Pick a model with a larger context, or set a higher budget.maxInputTokens in project.yaml.'): void {
@@ -223,53 +164,33 @@ function assertFits(c: WriteContext, messages: LlmMessage[], what: string, fix =
   if (tokens > c.maxTokens) throw new PipelineError(`${what} needs about ${tokens.toLocaleString('en')} tokens of input, more than the ${c.maxTokens.toLocaleString('en')} allowed.`, [fix]);
 }
 
-function expectedReply(c: WriteContext): number {
-  if (c.key === 'test-cases') {
-    const n = extractItems(upstreamBody(c, 'test-scenarios') ?? '').filter((i) => i.prefix === 'TS').length || requirementIds(upstreamBody(c, 'brd'), c.base.removed).length;
-    return n * TOKENS_PER_UNIT['test-cases'];
-  }
-  if (c.key === 'stories') return requirementIds(upstreamBody(c, 'brd'), c.base.removed).length * TOKENS_PER_UNIT.stories;
-  return 0;
-}
-
 /**
- * Drops what a reply that stopped early leaves behind: a last table row that never closed,
- * and a last story that never reached its sub-tasks. The gap fill then writes those items again.
+ * Drops what a reply that stopped early leaves behind: a last table row that never closed, or
+ * one with fewer than half its cells filled. The gap fill then writes that item again.
  */
-export function repairCutOff(body: string, prefix?: 'TS' | 'TC' | 'US'): string {
+export function repairCutOff(body: string, prefix?: ItemPrefix): string {
   if (!prefix) return body;
-  let lines = toLf(body).trimEnd().split('\n');
-  if (prefix === 'US') {
-    const last = parseSections(lines.join('\n')).filter((s) => s.level === 3 && /^US-\d+/.test(s.title.replace(/[*_`]/g, ''))).at(-1);
-    if (last && last.end >= lines.length && !/sub-?tasks/i.test(last.body)) lines = lines.slice(0, last.start);
-  } else {
-    const end = lines.at(-1)?.trim() ?? '';
-    if (end.startsWith('|') && !end.endsWith('|')) lines.pop();
-    const table = parseTables(lines.join('\n')).at(-1);
-    if (table && table.end >= lines.length && table.rows.length) {
-      const lastRow = table.rows.at(-1)!;
-      if (lastRow.filter((cell) => cell.trim()).length < Math.ceil(table.headers.length / 2)) lines.splice(table.rowLines.at(-1)!, 1);
-    }
+  const lines = toLf(body).trimEnd().split('\n');
+  const end = lines.at(-1)?.trim() ?? '';
+  if (end.startsWith('|') && !end.endsWith('|')) lines.pop();
+  const table = parseTables(lines.join('\n')).at(-1);
+  if (table && table.end >= lines.length && table.rows.length) {
+    const lastRow = table.rows.at(-1)!;
+    if (lastRow.filter((cell) => cell.trim()).length < Math.ceil(table.headers.length / 2)) lines.splice(table.rowLines.at(-1)!, 1);
   }
   return `${lines.join('\n').trimEnd()}\n`;
 }
 
-/** Joins pieces: table rows go into the first piece's table; epics go after the first piece's epics. */
-export function mergeParts(parts: string[], prefix: 'TS' | 'TC' | 'US'): string {
+/** Joins pieces: the item rows of later pieces go into the first piece's item table. */
+export function mergeParts(parts: string[], prefix: ItemPrefix): string {
   if (parts.length === 1) return parts[0];
   const base = toLf(parts[0]).trimEnd().split('\n');
-  if (prefix === 'US') {
-    const epics = parts.slice(1).flatMap((p) => {
-      const lines = toLf(p).split('\n');
-      return parseSections(p)
-        .filter((s) => s.level === 2 && /^EP-\d+/.test(s.title.replace(/[*_`]/g, '')))
-        .map((s) => lines.slice(s.start, s.end).join('\n').trimEnd());
-    });
-    return `${base.join('\n')}\n\n${epics.join('\n\n')}\n`;
-  }
   const rows = parts.slice(1).flatMap((p) => {
     const lines = toLf(p).split('\n');
-    return parseTables(p).flatMap((t) => t.rows.map((r, k) => ({ r, line: lines[t.rowLines[k]] }))).filter(({ r }) => prefixOf(firstCell(r)) === prefix).map(({ line }) => line);
+    return parseTables(p)
+      .flatMap((t) => t.rows.map((r, k) => ({ r, line: lines[t.rowLines[k]] })))
+      .filter(({ r }) => prefixOf(firstCell(r)) === prefix)
+      .map(({ line }) => line);
   });
   const table = parseTables(base.join('\n')).find((t) => t.rows.some((r) => prefixOf(firstCell(r)) === prefix));
   base.splice(table ? table.end : base.length, 0, ...rows);
@@ -278,18 +199,21 @@ export function mergeParts(parts: string[], prefix: 'TS' | 'TC' | 'US'): string 
 
 /** After pieces are joined, the summary line is rewritten from the actual items, so its counts are right. */
 export function withSummary(key: StageKey, body: string): string {
+  const items = extractItems(body);
+  const count = (prefix: string, covered: string) => {
+    const own = items.filter((i) => i.prefix === prefix);
+    return [own.length, new Set(own.flatMap((i) => i.refs.filter((r) => r.startsWith(`${covered}-`)))).size];
+  };
   let text: string | undefined;
-  if (key === 'test-cases') {
-    const types = extractItems(body).filter((i) => i.prefix === 'TC').map((i) => cellFor(i, /^type$/i).toLowerCase());
-    const n = (t: string) => types.filter((x) => x.includes(t)).length;
-    text = `${types.length} test cases: ${n('positive')} positive, ${n('negative')} negative, ${n('edge')} edge.`;
-  } else if (key === 'stories') {
-    const epics = parseStories(body);
-    const stories = epics.flatMap((e) => e.stories);
-    const points = stories.reduce((sum, s) => sum + (s.points ?? 0), 0);
-    text = `${epics.length} epics, ${stories.length} stories, ${points} story points.`;
+  if (key === 'fdd') {
+    const [n, m] = count('FD', 'FR');
+    text = `${n} functional design items covering ${m} requirements.`;
+  } else if (key === 'tdd') {
+    const [n, m] = count('TD', 'FD');
+    text = `${n} technical design items covering ${m} functional design items.`;
+  } else {
+    return body;
   }
-  if (!text) return body;
   const lines = toLf(body).split('\n');
   const summary = parseSections(body).find((s) => s.level === 2 && normalizeHeading(s.title) === 'summary');
   if (!summary) return body;
@@ -299,25 +223,34 @@ export function withSummary(key: StageKey, body: string): string {
 
 // ---------------------------------------------------------------- helpers
 
-function upstreamBody(c: WriteContext, key: StageKey): string | undefined {
+function upstreamBody(c: Pick<WriteContext, 'base'>, key: StageKey): string | undefined {
   return c.base.upstream.find((u) => u.key === key)?.body;
 }
 
 /**
- * What one piece needs and nothing more: the BRD's rows for the requirements it covers and the
- * matching scenario rows. The rest of the BRD and the intake summary stay out, so a piece is
- * genuinely smaller than the whole request.
+ * What one piece needs and nothing more: the BRD rows for the requirements it covers and the
+ * matching functional design rows. The intake summary stays out; strategies are kept whole,
+ * as they set the approach for every case.
  */
-function onlyThese(upstream: UpstreamDoc[], frs: string[], scenarios?: string[]): UpstreamDoc[] {
+function onlyThese(c: WriteContext, ids: string[], unit: PieceUnit): UpstreamDoc[] {
+  const design = extractItems(upstreamBody(c, 'fdd') ?? '').filter((i) => i.prefix === 'FD');
+  const frs = unit === 'FR' ? ids : unique(design.filter((d) => ids.includes(d.id)).flatMap((d) => d.refs.filter((r) => r.startsWith('FR-'))));
+  const fds = unit === 'FD' ? ids : design.filter((d) => d.refs.some((r) => frs.includes(r))).map((d) => d.id);
+  const attributes = extractItems(upstreamBody(c, 'dsd') ?? '')
+    .filter((i) => i.prefix === 'DA' && i.refs.some((r) => frs.includes(r) || fds.includes(r)))
+    .map((i) => i.id);
   const keepRow = (row: string[]) => {
     const id = firstCell(row);
     if (id.startsWith('FR-')) return frs.includes(id);
-    if (id.startsWith('TS-')) return scenarios ? scenarios.includes(id) : idsIn(row.slice(1).join(' ')).some((r) => frs.includes(r));
+    if (id.startsWith('FD-')) return fds.includes(id);
+    if (id.startsWith('DA-')) return attributes.includes(id);
+    if (id.startsWith('DS-')) return idsIn(row.slice(1).join(' ')).some((r) => attributes.includes(r));
     return false;
   };
-  return upstream
-    .filter((u) => u.key === 'brd' || u.key === 'test-scenarios')
-    .map((u) => ({ ...u, title: `${u.title} (only the rows this part needs)`, body: rowsOnly(u.body, keepRow) }));
+  const trimmed = new Set<StageKey>(['brd', 'fdd', 'dsd']);
+  return c.base.upstream
+    .filter((u) => u.key !== 'intake')
+    .map((u) => (trimmed.has(u.key) ? { ...u, title: `${u.title} (only the rows this part needs)`, body: rowsOnly(u.body, keepRow) } : u));
 }
 
 /** The header and the kept rows of each table that has any, under the table's section heading. */

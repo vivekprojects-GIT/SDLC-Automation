@@ -122,7 +122,7 @@ export class CopilotProvider implements LlmProvider {
     });
 
     try {
-      const response = await model.sendRequest(chat, { justification: 'SDLC Automation writes project documents from your requirement inputs.' }, source.token);
+      const response = await model.sendRequest(chat, { justification: 'SDLC CAPM writes PDLC deliverables from your project inputs.' }, source.token);
       let out = '';
       for await (const part of response.text) out += part;
       this.lastModel = `${model.vendor}/${model.family}`;

@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import JSZip from 'jszip';
 import { PipelineError } from './errors';
 import type { StageDef } from './stages/registry';
 import { toLf } from './util/markdown';
@@ -33,11 +34,31 @@ export async function loadTemplate(toolRoot: string, pack: string, def: StageDef
   }
 }
 
+export const WORD_TEMPLATE = 'word-template.docx';
+
+/**
+ * The styles of the organisation's Word template, `content/templates/<pack>/word-template.docx`, if the pack has one.
+ * Word deliverables then use its fonts, colours and heading styles.
+ */
+export async function loadWordStyles(toolRoot: string, pack: string): Promise<string | undefined> {
+  let bytes: Buffer;
+  try {
+    bytes = await fs.readFile(path.join(toolRoot, 'content', 'templates', pack, WORD_TEMPLATE));
+  } catch {
+    return undefined;
+  }
+  try {
+    return (await (await JSZip.loadAsync(bytes)).file('word/styles.xml')?.async('string')) ?? undefined;
+  } catch {
+    throw new PipelineError(`content/templates/${pack}/${WORD_TEMPLATE} is not a readable Word file.`, ['Save it again from Word as a .docx, or remove it to use the default styles.']);
+  }
+}
+
 export async function loadStageContent(toolRoot: string, pack: string, def: StageDef): Promise<StageContent> {
   const [rules, persona, instructions, template] = await Promise.all([
     read(toolRoot, 'rules.md'),
     read(toolRoot, `agents/${def.agent}.md`),
-    read(toolRoot, `stages/${def.file}`),
+    read(toolRoot, `steps/${def.file}`),
     loadTemplate(toolRoot, pack, def),
   ]);
   return { rules, persona, instructions, template };

@@ -1,7 +1,7 @@
 import type { StageContent } from '../content';
 import type { LlmImage, LlmMessage } from '../llm/provider';
 import type { ProjectConfig } from '../project';
-import type { StageDef, StageKey } from '../stages/registry';
+import type { ItemPrefix, StageDef, StageKey } from '../stages/registry';
 import { padId } from '../util/ids';
 import type { InputFile } from './inputs';
 
@@ -12,19 +12,13 @@ export interface UpstreamDoc {
   body: string;
 }
 
-export interface EpicPlan {
-  id: string;
-  name: string;
-  covers: string[];
-}
+/** What one piece of a long document is written for: requirements (FR) or functional design items (FD). */
+export type PieceUnit = 'FR' | 'FD';
 
 /** One piece of a document written in parts, or a request for only the items still missing. */
 export type Piece =
-  | { kind: 'requirements'; ids: string[]; startAt: number; epicStartAt: number }
-  | { kind: 'scenarios'; ids: string[]; scenarios: string[]; startAt: number }
-  | { kind: 'epic-plan'; ids: string[] }
-  | { kind: 'epics'; ids: string[]; epics: EpicPlan[]; startAt: number }
-  | { kind: 'gaps'; ids: string[]; startAt: number; epicStartAt: number };
+  | { kind: 'part'; unit: PieceUnit; ids: string[]; startAt: number }
+  | { kind: 'gaps'; unit: PieceUnit; ids: string[]; startAt: number };
 
 export interface PromptInput {
   def: StageDef;
@@ -39,23 +33,16 @@ export interface PromptInput {
   comment?: string;
 }
 
-const ITEM = { TS: 'scenario', TC: 'test case', US: 'story' } as const;
+const ITEM_NAMES: Record<ItemPrefix, string> = { FD: 'functional design items', DA: 'data attributes', TD: 'technical design items' };
+const UNIT_NAMES: Record<PieceUnit, string> = { FR: 'requirements', FD: 'functional design items' };
 
 function pieceText(p: PromptInput, piece: Piece): string {
-  const prefix = p.def.chunkPrefix ?? (p.def.key === 'test-scenarios' ? 'TS' : 'TC');
-  const plural = prefix === 'US' ? 'stories' : `${ITEM[prefix]}s`;
-  switch (piece.kind) {
-    case 'requirements':
-      return `# This part only\nWrite items only for these requirements: ${piece.ids.join(', ')}.\nNumber ${prefix} items starting at ${padId(prefix, piece.startAt)}.${prefix === 'US' ? ` Number epics starting at ${padId('EP', piece.epicStartAt)}.` : ''}`;
-    case 'scenarios':
-      return `# This part only\nWrite test cases only for these scenarios: ${piece.scenarios.join(', ')}. They cover: ${piece.ids.join(', ')}.\nNumber TC items starting at ${padId('TC', piece.startAt)}.`;
-    case 'epic-plan':
-      return `# Plan the epics only\nGroup these requirements into epics: ${piece.ids.join(', ')}. Put every requirement in exactly one epic.\nFor each epic return only two lines: "## EP-01 <Epic name>" and under it "Covers: <FR IDs>". Write no stories yet.`;
-    case 'epics':
-      return `# This part only\nWrite only these epics, keeping their IDs and names, with stories for the requirements they cover:\n${piece.epics.map((e) => `- ${e.id} ${e.name} (covers ${e.covers.join(', ')})`).join('\n')}\nNumber US items starting at ${padId('US', piece.startAt)}.`;
-    case 'gaps':
-      return `# Missing items only\nThese requirements still have no ${ITEM[prefix]}: ${piece.ids.join(', ')}. Write ${plural} only for them, in the template's format, and repeat nothing that already exists.\nNumber ${prefix} items starting at ${padId(prefix, piece.startAt)}.${prefix === 'US' ? ` Put the stories in new epics numbered from ${padId('EP', piece.epicStartAt)}.` : ''}`;
-  }
+  const prefix = p.def.items ?? 'FD';
+  const items = ITEM_NAMES[prefix];
+  const units = UNIT_NAMES[piece.unit];
+  const numbering = `Number ${prefix} items starting at ${padId(prefix, piece.startAt)}.`;
+  if (piece.kind === 'part') return `# This part only\nWrite ${items} only for these ${units}: ${piece.ids.join(', ')}.\n${numbering}`;
+  return `# Missing items only\nThese ${units} still have no ${items}: ${piece.ids.join(', ')}. Write ${items} only for them, in the template's format, and repeat nothing that already exists.\n${numbering}`;
 }
 
 /** Wraps a block in a tag such as <input_file name="notes.md">…</input_file>. */
@@ -68,7 +55,7 @@ function tag(name: string, body: string, attrs: Record<string, string> = {}): st
 
 function modeOf(p: PromptInput): string {
   if (!p.piece) return p.mode;
-  return p.piece.kind === 'epic-plan' ? 'epic-plan' : p.piece.kind === 'gaps' ? 'gaps' : 'chunk';
+  return p.piece.kind === 'gaps' ? 'gaps' : 'chunk';
 }
 
 /** Marker lines that say which step and mode a request is for (the tests' stand-in AI reads them). */
@@ -106,9 +93,7 @@ export function buildMessages(p: PromptInput): LlmMessage[] {
 
   if (p.piece) parts.push(tag('this_request', pieceText(p, p.piece)));
 
-  if (p.piece?.kind === 'epic-plan') {
-    parts.push('Return only the epic plan.');
-  } else if (p.piece?.kind === 'gaps') {
+  if (p.piece?.kind === 'gaps') {
     parts.push('Return only the new items. For a table, return the table header and the new rows.');
   } else if (p.mode === 'revise') {
     parts.push(

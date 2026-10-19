@@ -143,7 +143,8 @@ input:focus, textarea:focus, select:focus { outline: 1px solid var(--focus); out
 .doc-body p, .doc-body ul, .doc-body ol { margin: 6px 0; }
 .doc-body blockquote { margin: 8px 0; padding: 6px 12px; border-left: 3px solid var(--link); background: var(--tint-accent); }
 .doc-body table, .tbl table, .tbl-wide table { border-collapse: collapse; width: 100%; font-size: 12.5px; margin: 6px 0; }
-.doc-body { overflow-x: auto; }
+/* Wide tables (a BRD tab can have six long columns) scroll on their own, so the text around them never moves sideways. */
+.doc-body table { display: block; max-width: 100%; overflow-x: auto; }
 .doc-body th, .tbl th { text-align: left; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--ink-2); padding: 5px 10px 5px 0; vertical-align: bottom; }
 .doc-body td, .tbl td { border-bottom: 1px solid var(--line); padding: 6px 10px 6px 0; vertical-align: top; }
 .doc-body code { font-family: var(--f-mono); }
@@ -245,3 +246,6 @@ pre.csv { margin: 0; font: 11.5px/1.5 var(--f-mono); background: var(--bg); bord
 .step.s-icon .n { border: 0; }
 .step.s-icon .n .ico { width: 20px; height: 20px; }
 .activity li .ico { width: 16px; height: 16px; }
+
+/* Export: the approver's date sits under the name. */
+.deliverables .by { display: block; font-size: 11px; color: var(--ink-2); }

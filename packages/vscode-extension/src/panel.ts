@@ -23,10 +23,10 @@ export class SdlcPanel {
     }
     const root = findToolRoot();
     if (!root) {
-      void vscode.window.showErrorMessage('Open the sdlc-automation folder in VS Code first. It must contain content/stages and projects/.');
+      void vscode.window.showErrorMessage('Open the SDLC_CAPM folder in VS Code first. It must contain content/steps and projects/.');
       return;
     }
-    const panel = vscode.window.createWebviewPanel('sdlcAutomation', 'SDLC Automation', vscode.ViewColumn.One, {
+    const panel = vscode.window.createWebviewPanel('sdlcCapm', 'SDLC CAPM', vscode.ViewColumn.One, {
       enableScripts: true,
       retainContextWhenHidden: true,
       localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')],
@@ -66,7 +66,7 @@ export class SdlcPanel {
     this.disposables.push(watcher);
 
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('sdlcAutomation')) {
+      if (e.affectsConfiguration('sdlcCapm')) {
         this.pipeline?.setProvider(this.provider());
         void this.postSession();
       }
@@ -82,7 +82,7 @@ export class SdlcPanel {
   }
 
   private config() {
-    return vscode.workspace.getConfiguration('sdlcAutomation');
+    return vscode.workspace.getConfiguration('sdlcCapm');
   }
 
   private provider(): LlmProvider {
@@ -127,13 +127,13 @@ export class SdlcPanel {
 
   private async openProject(id?: string): Promise<void> {
     const projects = await listProjects(this.toolRoot);
-    const remembered = this.context.workspaceState.get<string>('sdlcAutomation.project');
+    const remembered = this.context.workspaceState.get<string>('sdlcCapm.project');
     const chosen = projects.find((p) => p.id === id) ?? projects.find((p) => p.id === remembered) ?? projects[0];
     if (!chosen) {
       await this.postSession();
       return;
     }
-    await this.context.workspaceState.update('sdlcAutomation.project', chosen.id);
+    await this.context.workspaceState.update('sdlcCapm.project', chosen.id);
     this.pipeline = await Pipeline.open({
       toolRoot: this.toolRoot,
       projectDir: chosen.dir,
@@ -212,7 +212,10 @@ export class SdlcPanel {
 
   private async openFile(file: string): Promise<void> {
     const uri = vscode.Uri.file(file);
-    if (file.toLowerCase().endsWith('.md')) await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.Beside, preview: false });
+    const lower = file.toLowerCase();
+    if (lower.endsWith('.md')) await vscode.window.showTextDocument(uri, { viewColumn: vscode.ViewColumn.Beside, preview: false });
+    // Word and Excel deliverables open in Office, as reviewers will see them in Planview/PPP.
+    else if (/\.(docx|xlsx)$/.test(lower)) await vscode.env.openExternal(uri);
     else await vscode.commands.executeCommand('vscode.open', uri, vscode.ViewColumn.Beside);
   }
 
@@ -243,7 +246,7 @@ export class SdlcPanel {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} data:; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="${media('ui.css')}">
-<title>SDLC Automation</title>
+<title>SDLC CAPM</title>
 </head>
 <body>
 <div id="app"></div>
@@ -261,7 +264,7 @@ export class SdlcPanel {
 function findToolRoot(): string | undefined {
   for (const f of vscode.workspace.workspaceFolders ?? []) {
     try {
-      accessSync(path.join(f.uri.fsPath, 'content', 'stages'));
+      accessSync(path.join(f.uri.fsPath, 'content', 'steps'));
       return f.uri.fsPath;
     } catch {
       /* not the repo */

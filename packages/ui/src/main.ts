@@ -18,7 +18,7 @@ function topbar(): string {
     state.projects.length > 1
       ? `<label class="sr" for="project">Project</label><select id="project" data-act="project">${state.projects.map((p) => `<option value="${esc(p.id)}" ${p.id === state.selected ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`
       : '';
-  return `<div class="brand">SDLC Automation Tool<small>Requirements to backlog, with a human review at every step</small></div>
+  return `<div class="brand">SDLC CAPM<small>MUFG PDLC Planning deliverables, with a named owner approving each one</small></div>
     <div class="top-controls">${projects}<span class="kv"><span>AI</span>${esc(state.provider || 'Not connected')}</span>${modelPicker()}<span class="kv"><span>Reviewer</span>${esc(state.reviewer)}</span></div>`;
 }
 
@@ -211,9 +211,6 @@ document.addEventListener('click', (e) => {
       state.pending = true;
       send({ type: 'export' });
       break;
-    case 'copyCsv':
-      if (state.exportResult) send({ type: 'copy', text: state.exportResult.jiraCsv });
-      return;
     case 'dismiss':
       state.error = undefined;
       break;

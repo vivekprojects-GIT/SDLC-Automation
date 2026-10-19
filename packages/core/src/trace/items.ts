@@ -1,18 +1,16 @@
 import { cellId, idsIn, prefixOf } from '../util/ids';
-import { cellText, parseSections, parseTables } from '../util/markdown';
+import { cellText, parseTables } from '../util/markdown';
 
-/** Anything with an ID: a table row (FR-01, TC-03) or a heading section (EP-01, US-02). */
+/** Anything with an ID in a table row: FR-01, FD-03, SIT-12. */
 export interface TraceItem {
   id: string;
   prefix: string;
   /** Other IDs mentioned in the row or section. */
   refs: string[];
   struck: boolean;
-  kind: 'row' | 'section';
+  kind: 'row';
   cells?: string[];
   headers?: string[];
-  title?: string;
-  body?: string;
 }
 
 export function extractItems(md: string): TraceItem[] {
@@ -23,11 +21,6 @@ export function extractItems(md: string): TraceItem[] {
       if (!id) continue;
       items.push({ id, prefix: prefixOf(id), refs: idsIn(r.slice(1).join(' ')).filter((x) => x !== id), struck, kind: 'row', cells: r, headers: t.headers });
     }
-  }
-  for (const s of parseSections(md)) {
-    const m = s.title.replace(/[*_`]/g, '').match(/^((?:EP|US)-\d{1,4})\b[\s:.-]*(.*)$/);
-    if (!m || s.level < 2 || s.level > 3) continue;
-    items.push({ id: m[1], prefix: prefixOf(m[1]), refs: idsIn(s.body).filter((x) => x !== m[1]), struck: s.title.includes('~~'), kind: 'section', title: m[2].trim(), body: s.body });
   }
   return items;
 }

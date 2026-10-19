@@ -13,11 +13,11 @@ import {
   type StageKey,
 } from '@sdlc/core';
 
-const HELP = `SDLC Automation: command line
+const HELP = `SDLC CAPM: command line
 
 Usage: npm run sdlc -- <command> [arguments] [--project <id>] [--as "<your name>"]
 
-GitHub Copilot writes the documents: in the SDLC Tool screen, or in Copilot Chat with /sdlc-next.
+GitHub Copilot writes the deliverables: in the SDLC CAPM screen, or in Copilot Chat with /sdlc-next.
 This command line versions, checks, approves and exports them.
 
 Commands
@@ -31,7 +31,7 @@ Commands
   prompt <step> [--revise "<comment>"] [--out]
                                    Print the full instructions for a step, for Copilot chat
   register <step>                  Register a document Copilot chat wrote into outputs/
-  export                           Write the Jira import file and the traceability matrix
+  export                           Write the Planview/PPP deliverables (Word, Excel) and the RTM
 
 Steps: ${Object.keys(STAGES).join(', ')}`;
 
@@ -85,7 +85,7 @@ function printStatus(s: PipelineSnapshot): void {
     console.log(`  ${i}  ${st.title.padEnd(18)} ${st.status.padEnd(9)} ${(st.version ? `v${st.version}` : '').padEnd(6)} owner: ${st.owner}${extra}`);
   });
   const c = s.coverage;
-  if (c.requirements) console.log(`\nCoverage: ${c.withTestCase}/${c.requirements} requirements have a test case, ${c.withStory}/${c.requirements} have a story.`);
+  if (c.requirements) console.log(`\nTraceability: of ${c.requirements} BRD requirements, ${c.withDesign} have an FDD item, ${c.withTechnical} a TDD item, ${c.sitDecided} a SIT scope decision and ${c.uatDecided} a UAT scope decision; ${c.fullyTraced} are fully traced.`);
 }
 
 function printChecks(s: PipelineSnapshot, key: StageKey): void {
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
     return;
   }
   const toolRoot = await findToolRoot(process.cwd());
-  if (!toolRoot) throw new PipelineError('Run this inside the sdlc-automation repo: no content/stages folder was found.');
+  if (!toolRoot) throw new PipelineError('Run this inside the SDLC_CAPM repo: no content/steps folder was found.');
 
   if (cmd === 'projects') {
     for (const p of await listProjects(toolRoot)) console.log(`${p.id}  ${p.name}`);
@@ -181,7 +181,7 @@ async function main(): Promise<void> {
     }
     case 'export': {
       const r = await pipeline.exportAll(actor);
-      console.log(`Exported ${r.counts.epics} epics, ${r.counts.stories} stories and ${r.counts.subTasks} sub-tasks.`);
+      console.log(`Exported ${r.files.length} deliverables. ${r.coverage.fullyTraced} of ${r.coverage.requirements} requirements are fully traced.`);
       for (const f of r.files) console.log(`  projects/${pipeline.project.id}/${f}`);
       break;
     }

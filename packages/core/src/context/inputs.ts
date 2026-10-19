@@ -4,6 +4,7 @@ import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
 import type { InputInfo } from '../types';
 import { toLf } from '../util/markdown';
+import { captionsToTranscript } from './captions';
 
 export interface InputFile extends InputInfo {
   text?: string;
@@ -13,6 +14,8 @@ export interface InputFile extends InputInfo {
 }
 
 const TEXT = new Set(['.md', '.txt', '.csv', '.json', '.yaml', '.yml']);
+/** Meeting transcripts exported from Teams or Zoom. */
+const CAPTIONS = new Set(['.vtt', '.srt']);
 const IMAGES: Record<string, string> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
 const SHEET_ROWS = 200;
 
@@ -37,7 +40,7 @@ function describe(projectDir: string, file: string, bytes: number): InputInfo {
   const rel = path.relative(path.join(projectDir, 'inputs'), file).split(path.sep).join('/');
   const ext = path.extname(file).toLowerCase();
   const kind = rel.split('/').includes('figma') ? 'figma' : 'document';
-  if (TEXT.has(ext) || ext === '.docx' || ext === '.xlsx' || ext === '.xls' || IMAGES[ext]) return { rel, kind, bytes, readable: true };
+  if (TEXT.has(ext) || CAPTIONS.has(ext) || ext === '.docx' || ext === '.xlsx' || ext === '.xls' || IMAGES[ext]) return { rel, kind, bytes, readable: true };
   if (ext === '.pdf') return { rel, kind, bytes, readable: false, note: 'PDF is not supported yet. Save it as .docx or .txt.' };
   return { rel, kind, bytes, readable: false, note: `${ext || 'This file type'} is not supported, so it was skipped.` };
 }
@@ -58,6 +61,7 @@ export async function readInputs(projectDir: string): Promise<InputFile[]> {
     const ext = path.extname(file).toLowerCase();
     try {
       if (TEXT.has(ext)) info.text = toLf(await fs.readFile(file, 'utf8'));
+      else if (CAPTIONS.has(ext)) info.text = captionsToTranscript(await fs.readFile(file, 'utf8'));
       else if (ext === '.docx') info.text = toLf((await mammoth.extractRawText({ path: file })).value);
       else if (ext === '.xlsx' || ext === '.xls') info.text = readWorkbook(await fs.readFile(file));
       else if (IMAGES[ext]) info.image = { mimeType: IMAGES[ext], data: new Uint8Array(await fs.readFile(file)) };
