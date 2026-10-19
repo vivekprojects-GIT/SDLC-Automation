@@ -1,0 +1,379 @@
+{
+  "schema": 1,
+  "stages": {
+    "intake": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "Business analyst agent",
+          "at": "2026-10-19T15:41:03.524Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (Project manager)",
+          "at": "2026-10-19T16:09:19.267Z"
+        }
+      ],
+      "answers": {
+        "Q1": "Above $5M, as written in the policy notes §3. The 7.5 million on the call was not confirmed.",
+        "Q2": "Always declined. A risk rating of 7 or worse has no exception path.",
+        "Q4": "Yes, in scope. Demo assumption: every checklist row submitted in the three years before go-live, from the legacy checklist file.",
+        "Q5": "Demo assumption: results within 3 seconds of submission."
+      },
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 4 template sections are filled"
+        },
+        {
+          "id": "inputs",
+          "level": "pass",
+          "message": "All 6 input files are used"
+        },
+        {
+          "id": "question:Q3",
+          "level": "warn",
+          "message": "Q3 has no answer yet: Should the system check and display LTV only when real estate is the collateral, or should the results frame show LTV for other collateral types too?"
+        },
+        {
+          "id": "question:Q6",
+          "level": "warn",
+          "message": "Q6 has no answer yet: How must the system enforce the restriction that only RMs and credit staff may see check results, and are any further access rules required?"
+        },
+        {
+          "id": "question:Q7",
+          "level": "warn",
+          "message": "Q7 has no answer yet: What privacy requirements apply to borrower financial details beyond restricting who may see check results?"
+        },
+        {
+          "id": "question:Q8",
+          "level": "warn",
+          "message": "Q8 has no answer yet: How long must checks, decisions and migrated checklist records be retained?"
+        },
+        {
+          "id": "question:Q9",
+          "level": "warn",
+          "message": "Q9 has no answer yet: What accessibility requirements must the screens meet?"
+        },
+        {
+          "id": "question:Q10",
+          "level": "warn",
+          "message": "Q10 has no answer yet: What information must the full record of each check and decision contain?"
+        },
+        {
+          "id": "question:Q11",
+          "level": "warn",
+          "message": "Q11 has no answer yet: Are the supplied sample Figma descriptions sufficient as screen evidence, or will the real frame PNG exports be provided for review?"
+        },
+        {
+          "id": "questions",
+          "level": "pass",
+          "message": "Critical questions answered (4 of 11 answered)"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "3bed2e02d4fb557c",
+      "approvedBy": "vivek (Project manager)",
+      "approvedAt": "2026-10-19T16:09:19.267Z"
+    },
+    "brd": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "Business analyst agent",
+          "at": "2026-10-19T16:10:17.273Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "0.2",
+          "action": "revised",
+          "by": "Business analyst agent",
+          "at": "2026-10-19T16:12:56.355Z",
+          "note": "For the comment: \"Add a requirement for this intake fact, citing its source: \"One legacy record has no loan ID.\"\""
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (Business analyst)",
+          "at": "2026-10-19T16:13:58.463Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {
+        "NFR-04": "keep"
+      },
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 15 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (33 items)"
+        },
+        {
+          "id": "source:NFR-04",
+          "level": "pass",
+          "message": "NFR-04 kept: the reviewer confirmed it with the business"
+        },
+        {
+          "id": "checklist",
+          "level": "pass",
+          "message": "Covered: Security and access, Personal data and privacy, Data retention, Accessibility, Audit trail, Performance"
+        },
+        {
+          "id": "completeness",
+          "level": "pass",
+          "message": "22 of 23 intake facts are carried into the BRD"
+        },
+        {
+          "id": "fact:nk6h",
+          "level": "warn",
+          "message": "The BRD may not carry 7.5million from this intake fact: \"The credit lead said senior sign-off starts above 7.5 million, but added that this needs checking.\"",
+          "fix": "Check the requirements carry the exact values from this intake fact (7.5million): \"The credit lead said senior sign-off starts above 7.5 million, but added that this needs checking.\""
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "5aa1211a4b4e87fc",
+      "approvedBy": "vivek (Business analyst)",
+      "approvedAt": "2026-10-19T16:13:58.463Z"
+    },
+    "fdd": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "IT lead agent",
+          "at": "2026-10-19T16:14:38.373Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (IT lead)",
+          "at": "2026-10-19T16:15:22.532Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 5 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (24 items)"
+        },
+        {
+          "id": "links:FD",
+          "level": "pass",
+          "message": "All 24 FD items name the BRD requirement they serve"
+        },
+        {
+          "id": "coverage",
+          "level": "pass",
+          "message": "Every requirement has a functional design item (24 of 24)"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "aa20da62c1b6b636",
+      "approvedBy": "vivek (IT lead)",
+      "approvedAt": "2026-10-19T16:15:22.532Z"
+    },
+    "dsd": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "IT lead agent",
+          "at": "2026-10-19T16:16:41.590Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (IT lead)",
+          "at": "2026-10-19T16:16:46.524Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 5 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (69 items)"
+        },
+        {
+          "id": "links:DA",
+          "level": "pass",
+          "message": "All 31 DA items name the requirement or design item they serve"
+        },
+        {
+          "id": "mappings",
+          "level": "pass",
+          "message": "Every data attribute has a source-to-destination mapping (31 of 31)"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "b02a49db99f6d02a",
+      "approvedBy": "vivek (IT lead)",
+      "approvedAt": "2026-10-19T16:16:46.524Z"
+    },
+    "tdd": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "IT lead agent",
+          "at": "2026-10-19T16:17:48.445Z",
+          "note": "copilot/claude-fable-5.1; written in 2 pieces"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (IT lead)",
+          "at": "2026-10-19T16:18:25.234Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 9 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (24 items)"
+        },
+        {
+          "id": "links:TD",
+          "level": "pass",
+          "message": "All 24 TD items name the functional design item they serve"
+        },
+        {
+          "id": "coverage",
+          "level": "pass",
+          "message": "Every functional design item has a technical design item (24 of 24)"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "53b7e1df53e5841f",
+      "approvedBy": "vivek (IT lead)",
+      "approvedAt": "2026-10-19T16:18:25.234Z"
+    },
+    "sit-strategy": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "QA lead agent",
+          "at": "2026-10-19T16:19:28.127Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (QA lead)",
+          "at": "2026-10-19T16:19:48.888Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 12 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (30 items)"
+        },
+        {
+          "id": "scope",
+          "level": "pass",
+          "message": "SIT scope decided for every requirement: 24 in, 0 out"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "031302725b3e5137",
+      "approvedBy": "vivek (QA lead)",
+      "approvedAt": "2026-10-19T16:19:48.888Z"
+    },
+    "uat-strategy": {
+      "history": [
+        {
+          "version": "0.1",
+          "action": "generated",
+          "by": "UAT lead agent",
+          "at": "2026-10-19T16:20:37.490Z",
+          "note": "copilot/claude-fable-5.1"
+        },
+        {
+          "version": "1.0",
+          "action": "approved",
+          "by": "vivek (UAT lead)",
+          "at": "2026-10-19T16:21:18.849Z"
+        }
+      ],
+      "answers": {},
+      "resolutions": {},
+      "checks": [
+        {
+          "id": "sections",
+          "level": "pass",
+          "message": "All 12 template sections are filled"
+        },
+        {
+          "id": "ids",
+          "level": "pass",
+          "message": "IDs are unique (30 items)"
+        },
+        {
+          "id": "scope",
+          "level": "pass",
+          "message": "UAT scope decided for every requirement: 24 in, 0 out"
+        }
+      ],
+      "notes": [],
+      "status": "approved",
+      "version": "1.0",
+      "bodyHash": "e8a1ae55e54507db",
+      "approvedBy": "vivek (UAT lead)",
+      "approvedAt": "2026-10-19T16:21:18.849Z"
+    }
+  }
+}

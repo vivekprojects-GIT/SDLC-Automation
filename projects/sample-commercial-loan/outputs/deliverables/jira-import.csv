@@ -1,0 +1,254 @@
+Issue Id,Parent Id,Issue Type,Summary,Description,Acceptance Criteria,Priority,Labels,BRD IDs
+EP-01,,Epic,Replace manual checklist checking with submission-triggered policy checks and display the results,"Functional change from the BRD.
+System: New policy-check system; system name not provided
+BRD requirements: FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-10, FR-11, FR-12, FR-13, FR-14",,,sdlc-capm,"FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-10, FR-11, FR-12, FR-13, FR-14"
+FD-01,EP-01,Story,Start a policy check when an RM submits an application for policy checking,"Start a policy check when an RM submits an application for policy checking. [BRD FR-01]
+Systems: New policy-check system; application-submission system name not provided [BRD System interfaces]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Application summary; submission-to-policy-check interface
+
+Acceptance criteria (the BRD requirements):
+FR-01: The system must start a policy check when an RM submits an application for policy checking.",FR-01: The system must start a policy check when an RM submits an application for policy checking.,High,sdlc-capm FR-01,FR-01
+TD-01,FD-01,Sub-task,"Submission interface: On RM submission for policy checking, invoke the policy-check system with the application data","On RM submission for policy checking, invoke the policy-check system with the application data. Source system, interface contract, and physical tables are ASSUMPTION: not supplied. [BRD FR-01; FDD FD-01]
+Data: DA-01–DA-08; policy-check record table (ASSUMPTION)",,High,sdlc-capm,FR-01
+FD-02,EP-01,Story,Evaluate the DSCR rule against the stated threshold and record its outcome,"Evaluate the DSCR rule against the stated threshold and record its outcome. [BRD FR-02]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-02: The system must pass the DSCR rule when DSCR is at least 1.25x.",FR-02: The system must pass the DSCR rule when DSCR is at least 1.25x.,High,sdlc-capm FR-02,FR-02
+TD-02,FD-02,Sub-task,"DSCR rule processor: Evaluate and record the DSCR outcome using DSD mappings DS-13, DS-17, DS-21, and DS-25","Evaluate and record the DSCR outcome using DSD mappings DS-13, DS-17, DS-21, and DS-25. [BRD FR-02; FDD FD-02]
+Data: DA-05, DA-13, DA-17, DA-21, DA-25",,High,sdlc-capm,FR-02
+FD-03,EP-01,Story,"When collateral is real estate, evaluate the LTV rule against the stated threshold and record its outcome","When collateral is real estate, evaluate the LTV rule against the stated threshold and record its outcome. [BRD FR-03]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-03: When real estate is the collateral, the system must pass the LTV rule when LTV is at most 75%.","FR-03: When real estate is the collateral, the system must pass the LTV rule when LTV is at most 75%.",High,sdlc-capm FR-03,FR-03
+TD-03,FD-03,Sub-task,"LTV rule processor: For real-estate collateral, evaluate and record the LTV outcome using DSD mappings DS-14, DS-18, DS-22, and DS-26","For real-estate collateral, evaluate and record the LTV outcome using DSD mappings DS-14, DS-18, DS-22, and DS-26. Handling for other collateral types remains unresolved; do not infer an outcome. [BRD FR-03; FDD FD-03; intake Q3]
+Data: DA-04, DA-06, DA-14, DA-18, DA-22, DA-26",,High,sdlc-capm,FR-03
+FD-04,EP-01,Story,"Evaluate total borrower exposure, including existing loans, against the stated limit and record the outcome","Evaluate total borrower exposure, including existing loans, against the stated limit and record the outcome. [BRD FR-04]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-04: The system must pass the exposure rule when total exposure to one borrower, including the borrower’s existing loans, is at most $10M.","FR-04: The system must pass the exposure rule when total exposure to one borrower, including the borrower’s existing loans, is at most $10M.",High,sdlc-capm FR-04,FR-04
+TD-04,FD-04,Sub-task,"Exposure rule processor: Calculate and evaluate total borrower exposure using DSD mappings DS-12, DS-15, DS-19, DS-23, and DS-27","Calculate and evaluate total borrower exposure using DSD mappings DS-12, DS-15, DS-19, DS-23, and DS-27. [BRD FR-04; FDD FD-04]
+Data: DA-03, DA-07, DA-12, DA-15, DA-19, DA-23, DA-27",,High,sdlc-capm,FR-04
+FD-05,EP-01,Story,Treat a risk rating from 1 to 6 as eligible,"Treat a risk rating from 1 to 6 as eligible. [BRD FR-05]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-05: The system must treat a risk rating from 1 to 6 as eligible.",FR-05: The system must treat a risk rating from 1 to 6 as eligible.,High,sdlc-capm FR-05,FR-05
+TD-05,FD-05,Sub-task,Eligible risk-rating processor: Record the risk-rating outcome for ratings 1 to 6 using DSD mappings DS-16 and DS-28,"Record the risk-rating outcome for ratings 1 to 6 using DSD mappings DS-16 and DS-28. [BRD FR-05; FDD FD-05]
+Data: DA-08, DA-16, DA-28",,High,sdlc-capm,FR-05
+FD-06,EP-01,Story,"Decline a loan with a risk rating of 7 or worse, without an exception path","Decline a loan with a risk rating of 7 or worse, without an exception path. [BRD FR-06; intake Q2]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-06: The system must decline a loan with a risk rating of 7 or worse, without an exception path.","FR-06: The system must decline a loan with a risk rating of 7 or worse, without an exception path.",High,sdlc-capm FR-06,FR-06
+TD-06,FD-06,Sub-task,"Risk-rating decline processor: Decline ratings of 7 or worse and do not expose an exception path, using DSD mappings DS-16, DS-20, and DS-28","Decline ratings of 7 or worse and do not expose an exception path, using DSD mappings DS-16, DS-20, and DS-28. [BRD FR-06; intake Q2; FDD FD-06]
+Data: DA-08, DA-16, DA-20, DA-24, DA-28",,High,sdlc-capm,FR-06
+FD-10,EP-01,Story,Show the required application and policy-input information on the application summary,"Show the required application and policy-input information on the application summary. [BRD FR-10; figma/application-summary.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Application summary
+
+Acceptance criteria (the BRD requirements):
+FR-10: The application summary must show borrower name, loan ID, amount, collateral type, DSCR, LTV, existing exposure to the borrower and risk rating.","FR-10: The application summary must show borrower name, loan ID, amount, collateral type, DSCR, LTV, existing exposure to the borrower and risk rating.",High,sdlc-capm FR-10,FR-10
+TD-10,FD-10,Sub-task,"Application summary: Display borrower name, loan ID, amount, collateral type, DSCR, LTV, existing exposure, and risk rating from the policy-check record","Display borrower name, loan ID, amount, collateral type, DSCR, LTV, existing exposure, and risk rating from the policy-check record. [BRD FR-10; FDD FD-10]
+Data: DA-01–DA-08",,High,sdlc-capm,FR-10
+FD-11,EP-01,Story,Provide the “Submit for policy check” action on the application summary,"Provide the “Submit for policy check” action on the application summary. [BRD FR-11; figma/application-summary.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Application summary; submission-to-policy-check interface
+
+Acceptance criteria (the BRD requirements):
+FR-11: The application summary must provide a “Submit for policy check” action.",FR-11: The application summary must provide a “Submit for policy check” action.,High,sdlc-capm FR-11,FR-11
+TD-11,FD-11,Sub-task,Summary submission action: Provide the “Submit for policy check” action and connect it to the submission interface in TD-01,"Provide the “Submit for policy check” action and connect it to the submission interface in TD-01. [BRD FR-11; FDD FD-11]
+Data: Application data DA-01–DA-08",,High,sdlc-capm,FR-11
+FD-12,EP-01,Story,"Show a Pass or Fail outcome for each DSCR, LTV, exposure and risk rating rule","Show a Pass or Fail outcome for each DSCR, LTV, exposure and risk rating rule. [BRD FR-12; figma/policy-check-results.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-12: The policy results must show a row for each of the DSCR, LTV, exposure and risk rating rules, with a Pass or Fail outcome.","FR-12: The policy results must show a row for each of the DSCR, LTV, exposure and risk rating rules, with a Pass or Fail outcome.",High,sdlc-capm FR-12,FR-12
+TD-12,FD-12,Sub-task,"Policy results display: Display a Pass or Fail row for each DSCR, LTV, exposure, and risk-rating rule using the stored outcomes","Display a Pass or Fail row for each DSCR, LTV, exposure, and risk-rating rule using the stored outcomes. [BRD FR-12; FDD FD-12]
+Data: DA-13–DA-16",,High,sdlc-capm,FR-12
+FD-13,EP-01,Story,"For each failed rule, show its reason, actual value and limit","For each failed rule, show its reason, actual value and limit. [BRD FR-13; figma/policy-check-results.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-13: For each failed rule, the policy results must show the reason, actual value and limit.","FR-13: For each failed rule, the policy results must show the reason, actual value and limit.",High,sdlc-capm FR-13,FR-13
+TD-13,FD-13,Sub-task,"Failed-rule details: For each failed rule, display its reason, actual value, and limit from the stored result data","For each failed rule, display its reason, actual value, and limit from the stored result data. [BRD FR-13; FDD FD-13]
+Data: DA-17–DA-28",,High,sdlc-capm,FR-13
+FD-14,EP-01,Story,Show “Request exception” only when a rule fails and the loan is not declined,"Show “Request exception” only when a rule fails and the loan is not declined. [BRD FR-14; intake Q2; figma/policy-check-results.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-14: The policy results must show “Request exception” only when a rule fails and the loan is not declined.",FR-14: The policy results must show “Request exception” only when a rule fails and the loan is not declined.,High,sdlc-capm FR-14,FR-14
+TD-14,FD-14,Sub-task,Exception action visibility: Show “Request exception” only when a rule fails and the loan is not declined,"Show “Request exception” only when a rule fails and the loan is not declined. [BRD FR-14; intake Q2; FDD FD-14]
+Data: DA-13–DA-16; decline status from risk-rating processing",,High,sdlc-capm,FR-14
+EP-02,,Epic,"Support exception requests and decisions, including role assignment","Functional change from the BRD.
+System: New policy-check system; system name not provided
+BRD requirements: FR-07, FR-08, FR-09, FR-15, FR-16, FR-17, FR-18",,,sdlc-capm,"FR-07, FR-08, FR-09, FR-15, FR-16, FR-17, FR-18"
+FD-07,EP-02,Story,Require an exception decision before a loan can proceed when a rule fails and the loan is not declined,"Require an exception decision before a loan can proceed when a rule fails and the loan is not declined. [BRD FR-07; intake Q2]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results; exception request
+
+Acceptance criteria (the BRD requirements):
+FR-07: The system must require an exception decision before a loan can proceed when a rule fails and the loan is not declined.",FR-07: The system must require an exception decision before a loan can proceed when a rule fails and the loan is not declined.,High,sdlc-capm FR-07,FR-07
+TD-07,FD-07,Sub-task,Exception eligibility gate: Require an exception decision before a non-declined loan with a failed rule can proceed,"Require an exception decision before a non-declined loan with a failed rule can proceed. Suppress the exception path for declined loans. [BRD FR-07; intake Q2; FDD FD-07]
+Data: Rule outcomes DA-13–DA-16; decision DA-31",,High,sdlc-capm,FR-07
+FD-08,EP-02,Story,Assign an exception decision to a senior credit officer when the loan amount is above $5M,"Assign an exception decision to a senior credit officer when the loan amount is above $5M. [BRD FR-08; intake Q1]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-08: The system must assign an exception decision to a senior credit officer when the loan amount is above $5M.",FR-08: The system must assign an exception decision to a senior credit officer when the loan amount is above $5M.,High,sdlc-capm FR-08,FR-08
+TD-08,FD-08,Sub-task,"Senior officer routing: Assign exception decisions to a senior credit officer when the loan amount is above $5M, using DSD mapping DS-30","Assign exception decisions to a senior credit officer when the loan amount is above $5M, using DSD mapping DS-30. [BRD FR-08; intake Q1; FDD FD-08]
+Data: DA-03, DA-30",,High,sdlc-capm,FR-08
+FD-09,EP-02,Story,Assign an exception decision to a credit officer when the loan amount is $5M or less,"Assign an exception decision to a credit officer when the loan amount is $5M or less. [BRD FR-09; intake Q1]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-09: The system must assign an exception decision to a credit officer when the loan amount is $5M or less.",FR-09: The system must assign an exception decision to a credit officer when the loan amount is $5M or less.,High,sdlc-capm FR-09,FR-09
+TD-09,FD-09,Sub-task,"Credit officer routing: Assign exception decisions to a credit officer when the loan amount is $5M or less, using DSD mapping DS-30","Assign exception decisions to a credit officer when the loan amount is $5M or less, using DSD mapping DS-30. [BRD FR-09; intake Q1; FDD FD-09]
+Data: DA-03, DA-30",,High,sdlc-capm,FR-09
+FD-15,EP-02,Story,Show failed rules and their reasons on the exception request,"Show failed rules and their reasons on the exception request. [BRD FR-15; figma/exception-request.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-15: The exception request must show the failed rules and their reasons.",FR-15: The exception request must show the failed rules and their reasons.,High,sdlc-capm FR-15,FR-15
+TD-15,FD-15,Sub-task,"Exception request details: Display the failed rules and their reasons on the exception request, using the stored policy results","Display the failed rules and their reasons on the exception request, using the stored policy results. [BRD FR-15; FDD FD-15]
+Data: DA-17–DA-20",,High,sdlc-capm,FR-15
+FD-16,EP-02,Story,Provide an RM justification text box on the exception request,"Provide an RM justification text box on the exception request. [BRD FR-16; figma/exception-request.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-16: The exception request must provide an RM justification text box.",FR-16: The exception request must provide an RM justification text box.,High,sdlc-capm FR-16,FR-16
+TD-16,FD-16,Sub-task,RM justification input: Provide an RM justification text box and persist its entered text using DSD mapping DS-29,"Provide an RM justification text box and persist its entered text using DSD mapping DS-29. [BRD FR-16; FDD FD-16]
+Data: DA-29",,High,sdlc-capm,FR-16
+FD-17,EP-02,Story,Identify the deciding role as credit officer or senior credit officer on the exception request,"Identify the deciding role as credit officer or senior credit officer on the exception request. [BRD FR-17; intake Q1; figma/exception-request.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-17: The exception request must identify the deciding role as credit officer or senior credit officer.",FR-17: The exception request must identify the deciding role as credit officer or senior credit officer.,High,sdlc-capm FR-17,FR-17
+TD-17,FD-17,Sub-task,"Deciding-role display: Display the assigned role, credit officer or senior credit officer, using DSD mapping DS-30","Display the assigned role, credit officer or senior credit officer, using DSD mapping DS-30. [BRD FR-17; intake Q1; FDD FD-17]
+Data: DA-03, DA-30",,High,sdlc-capm,FR-17
+FD-18,EP-02,Story,Provide “Approve exception” and “Decline” actions on the exception request,"Provide “Approve exception” and “Decline” actions on the exception request. [BRD FR-18; figma/exception-request.md]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Exception request
+
+Acceptance criteria (the BRD requirements):
+FR-18: The exception request must provide “Approve exception” and “Decline” actions.",FR-18: The exception request must provide “Approve exception” and “Decline” actions.,High,sdlc-capm FR-18,FR-18
+TD-18,FD-18,Sub-task,Exception decision actions: Provide “Approve exception” and “Decline” actions and persist the selected action using DSD mapping DS-31,"Provide “Approve exception” and “Decline” actions and persist the selected action using DSD mapping DS-31. [BRD FR-18; FDD FD-18]
+Data: DA-31",,High,sdlc-capm,FR-18
+EP-03,,Epic,Retain check and decision records and restrict results access,"Functional change from the BRD.
+System: New policy-check system; system name not provided
+BRD requirements: FR-19, FR-20",,,sdlc-capm,"FR-19, FR-20"
+FD-19,EP-03,Story,Keep a full record of every policy check and every decision,"Keep a full record of every policy check and every decision. [BRD FR-19]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Record table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: record fields and table model are not provided.
+Screens and interfaces: None
+
+Acceptance criteria (the BRD requirements):
+FR-19: The system must keep a full record of every policy check and every decision.",FR-19: The system must keep a full record of every policy check and every decision.,High,sdlc-capm FR-19,FR-19
+TD-19,FD-19,Sub-task,"Check and decision history: Persist each policy check, its outcomes, and each exception decision in the logical policy-check record, result, and exception record tables","Persist each policy check, its outcomes, and each exception decision in the logical policy-check record, result, and exception record tables. Physical table names and full record fields are ASSUMPTION: not supplied. [BRD FR-19; FDD FD-19]
+Data: DA-01–DA-31, as applicable to each check or decision",,High,sdlc-capm,FR-19
+FD-20,EP-03,Story,Restrict policy-check results to RMs and credit staff,"Restrict policy-check results to RMs and credit staff. [BRD FR-20]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Policy check results
+
+Acceptance criteria (the BRD requirements):
+FR-20: The system must make policy-check results available only to RMs and credit staff.",FR-20: The system must make policy-check results available only to RMs and credit staff.,High,sdlc-capm FR-20,FR-20
+TD-20,FD-20,Sub-task,Results authorization: Restrict access to policy-check results to RMs and credit staff,"Restrict access to policy-check results to RMs and credit staff. Role source, authorization mechanism, and physical access-control design are ASSUMPTION: not supplied. [BRD FR-20; FDD FD-20]
+Data: Policy-check results and associated application data",,High,sdlc-capm,FR-20
+EP-04,,Epic,Migrate checklist history and make it available for borrower history,"Functional change from the BRD.
+System: New policy-check system; legacy Excel checklist
+BRD requirements: FR-21, FR-22, FR-23",,,sdlc-capm,"FR-21, FR-22, FR-23"
+FD-21,EP-04,Story,Migrate every legacy checklist row submitted in the three years before go-live,"Migrate every legacy checklist row submitted in the three years before go-live. [BRD FR-21; intake Q4]
+Systems: Legacy Excel checklist; new policy-check system [BRD System interfaces; intake Q4]
+Tables: Legacy checklist file; destination table name(s) not provided (ASSUMPTION).
+Number of columns: TBD; ASSUMPTION: destination table and column model not provided.
+Screens and interfaces: Legacy checklist migration interface
+
+Acceptance criteria (the BRD requirements):
+FR-21: The system must migrate every legacy checklist row submitted in the three years before go-live, from the legacy checklist file.","FR-21: The system must migrate every legacy checklist row submitted in the three years before go-live, from the legacy checklist file.",High,sdlc-capm FR-21,FR-21
+TD-21,FD-21,Sub-task,Legacy row selection and migration: Select every legacy checklist row submitted in the three years before go-live and load it to policy-check history,"Select every legacy checklist row submitted in the three years before go-live and load it to policy-check history. Physical target table name is ASSUMPTION: not supplied. [BRD FR-21; intake Q4; FDD FD-21]
+Data: DA-09–DA-11; migration population",,High,sdlc-capm,FR-21
+FD-22,EP-04,Story,Migrate the specified legacy checklist fields into the new system,"Migrate the specified legacy checklist fields into the new system. [BRD FR-22; legacy-policy-checklist.csv row 1; intake Q4]
+Systems: Legacy Excel checklist; new policy-check system [BRD System interfaces]
+Tables: Legacy checklist file; destination table name(s) not provided (ASSUMPTION).
+Number of columns: TBD; ASSUMPTION: destination table and column model not provided.
+Screens and interfaces: Legacy checklist migration interface
+
+Acceptance criteria (the BRD requirements):
+FR-22: The system must migrate the legacy checklist fields loan ID, borrower, submitted date, amount, DSCR, LTV, existing exposure, risk rating, result and checker.","FR-22: The system must migrate the legacy checklist fields loan ID, borrower, submitted date, amount, DSCR, LTV, existing exposure, risk rating, result and checker.",High,sdlc-capm FR-22,FR-22
+TD-22,FD-22,Sub-task,Legacy field migration: Map the specified legacy checklist fields into policy-check history using DSD mappings DS-09–DS-11 and DS-32–DS-38,"Map the specified legacy checklist fields into policy-check history using DSD mappings DS-09–DS-11 and DS-32–DS-38. Preserve a missing loan ID as specified by the DSD. [BRD FR-22; legacy-policy-checklist.csv row 1; FDD FD-22]
+Data: DA-01–DA-11",,High,sdlc-capm,FR-22
+FD-23,EP-04,Story,Make migrated checklist history available to show a borrower’s history,"Make migrated checklist history available to show a borrower’s history. [BRD FR-23; intake Q4]
+Systems: New policy-check system [BRD Impacted systems]
+Tables: ASSUMPTION: Table name(s) not provided; identify in DSD.
+Number of columns: TBD; ASSUMPTION: table and column model not provided.
+Screens and interfaces: Borrower history; exact screen or interface not specified
+
+Acceptance criteria (the BRD requirements):
+FR-23: The system must make migrated checklist history available to show a borrower’s history.",FR-23: The system must make migrated checklist history available to show a borrower’s history.,High,sdlc-capm FR-23,FR-23
+TD-23,FD-23,Sub-task,Borrower history access in the new policy-check system: Make migrated checklist history available to show a borrower’s history,"Make migrated checklist history available to show a borrower’s history; the screen or interface and borrower lookup method require confirmation. [BRD FR-23; FDD FD-23; ASSUMPTION]
+Data: Migrated checklist history; loan_id (DA-02); other history attributes are not specified. [DRD DA-02; ASSUMPTION]",,High,sdlc-capm,FR-23
+EP-05,,Epic,Other requirements,BRD requirements that no functional change in the BRD lists.,,,sdlc-capm,FR-24
+FD-24,EP-05,Story,Migrate a legacy checklist row even when it has no loan ID,"Migrate a legacy checklist row even when it has no loan ID. [BRD FR-24; legacy-policy-checklist.csv row 6]
+Systems: Legacy Excel checklist; new policy-check system [BRD System interfaces]
+Tables: Legacy checklist file; destination table name(s) not provided (ASSUMPTION).
+Number of columns: TBD; ASSUMPTION: destination table and column model not provided.
+Screens and interfaces: Legacy checklist migration interface
+
+Acceptance criteria (the BRD requirements):
+FR-24: The system must migrate a legacy checklist row that has no loan ID.",FR-24: The system must migrate a legacy checklist row that has no loan ID.,High,sdlc-capm FR-24,FR-24
+TD-24,FD-24,Sub-task,"Legacy checklist migration load: Load legacy checklist rows, including rows without a loan ID, into the assumed policy-check history table using mapping DS-33","Load legacy checklist rows, including rows without a loan ID, into the assumed policy-check history table using mapping DS-33. Target table name and missing-value representation require confirmation. [FDD FD-24; DSD DS-33; BRD FR-24; ASSUMPTION]
+Data: legacy-policy-checklist.csv.loan_id to assumed policy-check history table.loan_id; preserve missing loan ID. [DSD DS-33]",,High,sdlc-capm,FR-24

@@ -1,0 +1,28 @@
+timestamp,stage,action,actor,version,detail
+2026-10-19T15:41:03.546Z,intake,generated,Business analyst agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:09:02.079Z,intake,answered,Vivek (demo),0.1,"Q1: Above $5M, as written in the policy notes §3. The 7.5 million on the call was not confirmed."
+2026-10-19T16:09:02.850Z,intake,answered,Vivek (demo),0.1,Q2: Always declined. A risk rating of 7 or worse has no exception path.
+2026-10-19T16:09:03.610Z,intake,answered,Vivek (demo),0.1,"Q4: Yes, in scope. Demo assumption: every checklist row submitted in the three years before go-live, from the legacy checklist file."
+2026-10-19T16:09:04.391Z,intake,answered,Vivek (demo),0.1,Q5: Demo assumption: results within 3 seconds of submission.
+2026-10-19T16:09:19.270Z,intake,approved,vivek (Project manager),1.0,
+2026-10-19T16:10:17.292Z,brd,generated,Business analyst agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:12:26.496Z,brd,sent back,vivek,0.1,"Add a requirement for this intake fact, citing its source: ""One legacy record has no loan ID."""
+2026-10-19T16:12:56.374Z,brd,revised,Business analyst agent,0.2,Revised for the Business analyst's comment
+2026-10-19T16:13:49.463Z,brd,kept,vivek,0.2,NFR-04
+2026-10-19T16:13:58.465Z,brd,approved,vivek (Business analyst),1.0,
+2026-10-19T16:14:38.391Z,fdd,generated,IT lead agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:15:22.533Z,fdd,approved,vivek (IT lead),1.0,
+2026-10-19T16:16:41.607Z,dsd,generated,IT lead agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:16:46.526Z,dsd,approved,vivek (IT lead),1.0,
+2026-10-19T16:17:48.462Z,tdd,generated,IT lead agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1; written in 2 pieces)
+2026-10-19T16:18:25.236Z,tdd,approved,vivek (IT lead),1.0,
+2026-10-19T16:19:28.146Z,sit-strategy,generated,QA lead agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:19:48.892Z,sit-strategy,approved,vivek (QA lead),1.0,
+2026-10-19T16:20:37.507Z,uat-strategy,generated,UAT lead agent,0.1,Draft written with GitHub Copilot (copilot/claude-fable-5.1)
+2026-10-19T16:21:18.852Z,uat-strategy,approved,vivek (UAT lead),1.0,
+2026-10-19T16:21:32.455Z,export,exported,vivek,,8 deliverables; 24 of 24 requirements fully traced
+2026-10-19T17:13:18.767Z,export,exported,vivek,,8 deliverables; 24 of 24 requirements fully traced
+2026-10-19T17:13:30.087Z,export,exported,vivek,,"10 files; 24 of 24 requirements fully traced; Jira import of 5 epics, 24 stories and 24 sub-tasks"
+2026-10-19T17:14:01.032Z,export,exported,vivek,,"10 files; 24 of 24 requirements fully traced; Jira import of 5 epics, 24 stories and 24 sub-tasks"
+2026-10-19T17:18:05.824Z,export,exported,vivek,,8 deliverables; 24 of 24 requirements fully traced
+2026-10-19T17:19:13.790Z,export,exported,vivek,,"10 files; 24 of 24 requirements fully traced; Jira import of 5 epics, 24 stories and 24 sub-tasks"

@@ -7,7 +7,9 @@ packages/vscode-extension/media/*.map
 .vscode-test/
 projects/*/outputs/.prompt-*.md
 .preview/
+# A project's outputs stay local; the made-up sample keeps its finished run so people can see every deliverable.
 projects/*/outputs/
+!projects/sample-commercial-loan/outputs/
 
 # Client material never goes into Git: only the made-up sample project keeps its inputs.
 projects/*/inputs/
