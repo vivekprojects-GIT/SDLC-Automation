@@ -154,6 +154,10 @@ These approvals are the team's own review before submission. MUFG's formal appro
 
 ### Reading the screen
 
+![The SDLC CAPM screen with the UAT QA Strategy waiting for the UAT lead's review](images/screen-review.jpg)
+
+*The UAT QA Strategy waiting for review: the pipeline on the left, the deliverable with its checks in the middle, and Approvals and Traceability on the right.*
+
 | Area | What it shows |
 | --- | --- |
 | Top bar | The project, the AI connection (GitHub Copilot), the **Model** picker and your reviewer name |
@@ -165,6 +169,14 @@ These approvals are the team's own review before submission. MUFG's formal appro
 - **Approvals** shows how many of the seven deliverables are approved, and who approved each and when.
 - **Traceability** shows the share of BRD requirements that are **fully traced**: each has a functional design item, a technical design item, and a SIT and a UAT scope decision. One bar each shows the FDD, TDD, SIT scope and UAT scope, with the requirement IDs still missing listed under the bar.
 - **Audit log** lists every action, by people and by agents, newest first. It is saved in `outputs/audit-log.csv` and never sent to the AI.
+
+![Guardrail checks on the intake summary: 3 passed, 7 warnings, 0 blocking, with the open questions below](images/screen-checks.jpg)
+
+*The intake's checks: the unanswered normal questions are warnings, so approval is not blocked; the critical ones are answered below.*
+
+![The Traceability panel at 100%, with one bar each for the FDD, TDD, SIT scope and UAT scope, and the audit log below](images/screen-governance.jpg)
+
+*A finished project: all 24 BRD requirements fully traced, and the audit log of who did what.*
 
 ## Quality checks
 
@@ -215,6 +227,10 @@ Everything is written to the project's `outputs` folder.
 | `03-dsd.xlsx` | Excel, including the DRD tab |
 | `04-tdd.docx`, `05-sit-strategy.docx`, `06-uat-strategy.docx` | Word |
 | `rtm.xlsx` | Excel: the RTM, a Coverage tab and Document control |
+
+![The Export page listing the seven approved deliverables and the RTM, with their formats](images/screen-export.jpg)
+
+*The Export page: each deliverable with its version, approver and format, and the RTM generated from them.*
 
 Every Word file opens with a **Document control** table, and every workbook with a **Document control** tab: the document, project, version, status, owner, who approved it and when, and which agent and model wrote it. Word and Excel files open in Office from the Export page.
 
