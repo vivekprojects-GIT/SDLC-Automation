@@ -63,7 +63,7 @@ npm run install-extension
 4. After about a minute the intake summary appears. Answer the critical questions, then click **Approve**. The next step starts on its own.
 5. Carry on through the BRD, FDD, DRD/DSD, TDD and both QA strategies. Then open **Export** and click **Create Planview/PPP files**.
 
-The sample, `projects/sample-commercial-loan`, is a made-up commercial loan project, so it is safe to run as often as you like. To start it again, delete its `outputs` folder.
+The sample, `projects/sample-commercial-loan`, is a made-up commercial loan project, so it is safe to run as often as you like. It comes with a finished run in its `outputs` folder, so you can open every deliverable, the RTM and the Jira import before running anything. To start it again, delete its `outputs` folder.
 
 ## Start your own project
 
@@ -114,6 +114,7 @@ projects/<your-project>/
 | 6. SIT QA Strategy | The BRD, FDD, DSD and TDD | Scope, approach, environments, data, entry and exit criteria, defects, roles, schedule and risks, and a scope decision for every requirement | QA lead | Word |
 | 7. UAT QA Strategy | The BRD, FDD and SIT strategy | The business processes to accept, participants, sign-off criteria, and a scope decision for every requirement | UAT lead | Word |
 | Export | All approved deliverables | The Requirements Traceability Matrix with its Transition to BAU plan | — | Excel |
+| Export | The approved BRD, FDD and TDD | The Jira import: an epic per functional change, a story per FDD item, a sub-task per TDD item | — | Excel and CSV |
 
 **The BRD's tabs** follow the layout described on MUFG's discovery call: Stakeholders, Requirement sessions, Business objectives, High-level scope, Current state, Future state, Data flows, Detailed requirements, Non-functional requirements, Functional changes, Impacted systems, System interfaces, Report requirements, and In scope and out of scope, plus Assumptions and constraints. A tab that does not apply says so in one line. The detailed requirements carry a type: Functional, Data, Report, Interface or Validation.
 
@@ -227,6 +228,8 @@ Everything is written to the project's `outputs` folder.
 | `03-dsd.xlsx` | Excel, including the DRD tab |
 | `04-tdd.docx`, `05-sit-strategy.docx`, `06-uat-strategy.docx` | Word |
 | `rtm.xlsx` | Excel: the RTM, a Coverage tab and Document control |
+| `jira-import.csv` | The file Jira's CSV import reads |
+| `jira-import.xlsx` | Excel: the same issues to review, the import steps and Document control |
 
 ![The Export page listing the seven approved deliverables and the RTM, with their formats](images/screen-export.jpg)
 
@@ -237,6 +240,20 @@ Every Word file opens with a **Document control** table, and every workbook with
 **The RTM** has one row per BRD requirement: its BRD ID, type, source and priority; the FDD items, data attributes and TDD items that realise it; whether SIT and UAT have it in scope; and its trace status. The four **Transition to BAU** columns (BAU owner, transition activity, BAU readiness check, target date) are left for the BAU owner to complete, as nothing in the Planning deliverables says who will run the service after go-live.
 
 The project manager then uploads the files to Planview or PPP for the approval workflow the PDLC Procedure requires.
+
+### The Jira import
+
+Once the Planning deliverables are approved, the work is already broken into numbered items, so the export turns them into Jira issues for the delivery team. It is built in code from the approved deliverables: no AI request and no extra review gate.
+
+| Jira issue | Comes from | Issue Id | Parent |
+| --- | --- | --- | --- |
+| Epic | Each row of the BRD's Functional changes tab | EP-01, EP-02… | — |
+| Story | Each FDD item: the functional change, systems, tables and screens, with its BRD requirements as acceptance criteria | The FDD ID (FD-01) | The epic whose functional change lists its BRD requirement |
+| Sub-task | Each TDD item: the component and design | The TDD ID (TD-01) | The first FDD item it builds |
+
+Each issue keeps the BRD IDs it delivers, in its labels and in a BRD IDs column, so a ticket traces back to the requirement and the RTM. Priority follows the BRD: Must becomes High, Should Medium, Could Low. Requirements that no functional change lists go under an epic called Other requirements; removed requirements are left out.
+
+To load it, open **System → External system import → CSV** in Jira and choose `jira-import.csv`. Map **Issue Id** and **Parent Id** so stories sit under their epics and sub-tasks under their stories. The tool never connects to Jira itself: someone with access to MUFG's Jira imports the file. The `How to import` tab of `jira-import.xlsx` lists the steps. If MUFG's Jira names its issue types or priorities differently, change them in the CSV before importing.
 
 ## Customising without code
 
@@ -347,6 +364,7 @@ Run `npm run sdlc -- help` for every command: `status`, `answer`, `resolve`, `ap
 - Execution-phase deliverables (DUT, SIT and UAT cases, execution and exit reports), Initiation deliverables (IPR, PIRR), TOM, the Technology Deployment Plan, the Project Plan/WBS and the BAF.
 - Stage-level Assurance Gates, and approval depth that follows the project's risk rating: each deliverable has one approver in the tool.
 - Submitting to Planview or PPP automatically: files are uploaded by the project manager.
+- Creating Jira issues directly: the Jira import file is loaded by someone with access to MUFG's Jira.
 - Reading PDF inputs, or pulling inputs from SharePoint, Confluence or Git.
 
 **Open questions from MUFG's discovery call** that will change the templates or the flow: who owns and writes the BRD; how many BRD templates exist; whether other projects use a different format; whether scope stays at Planning or grows to the full SDLC; and whether MUFG keeps Planview.

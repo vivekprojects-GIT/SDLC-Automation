@@ -9,6 +9,20 @@ export function idsIn(text: string): string[] {
   return [...new Set(text.match(ID_PATTERN) ?? [])];
 }
 
+const RANGE = new RegExp(`\\b(${PREFIXES})-(\\d{1,4})\\s*(?:[–—-]|to)\\s*(?:\\1-)?(\\d{1,4})\\b`, 'g');
+
+/** IDs in a text, with ranges such as "FR-01–FR-06" or "FR-10 to FR-14" filled in. */
+export function idsWithRanges(text: string): string[] {
+  const out = new Set<string>();
+  for (const m of text.matchAll(RANGE)) {
+    const [from, to] = [Number(m[2]), Number(m[3])];
+    if (to < from || to - from > 500) continue;
+    for (let n = from; n <= to; n++) out.add(`${m[1]}-${String(n).padStart(m[2].length, '0')}`);
+  }
+  for (const id of idsIn(text)) out.add(id);
+  return [...out];
+}
+
 /** Reads the ID out of a table's first cell, ignoring bold, code and strike-through marks. */
 export function cellId(cell: string): { id: string | null; struck: boolean } {
   const struck = cell.includes('~~');

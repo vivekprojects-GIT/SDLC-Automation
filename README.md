@@ -1,6 +1,6 @@
 # SDLC CAPM
 
-Writes MUFG's PDLC Planning-phase deliverables with GitHub Copilot, in MUFG's layout: the **BRD, FDD, DRD/DSD, TDD, and SIT and UAT QA Strategies**, plus the **Requirements Traceability Matrix with its Transition to BAU plan**. Each deliverable is checked in code and approved by its named owner before the next one starts, then exported as Word and Excel files ready for Planview or PPP. Everything runs on your laptop inside VS Code: nothing to host, no API key.
+Writes MUFG's PDLC Planning-phase deliverables with GitHub Copilot, in MUFG's layout: the **BRD, FDD, DRD/DSD, TDD, and SIT and UAT QA Strategies**, plus the **Requirements Traceability Matrix with its Transition to BAU plan**. Each deliverable is checked in code and approved by its named owner before the next one starts, then exported as Word and Excel files ready for Planview or PPP, with a Jira import of the stories for the delivery team. Everything runs on your laptop inside VS Code: nothing to host, no API key.
 
 ![The SDLC CAPM pipeline: inputs, seven Planning deliverables each behind a review gate, then the Planview/PPP files](docs/images/diagram-pipeline.svg)
 
@@ -14,6 +14,7 @@ Writes MUFG's PDLC Planning-phase deliverables with GitHub Copilot, in MUFG's la
 | 6 | SIT QA Strategy | QA lead | Word |
 | 7 | UAT QA Strategy | UAT lead | Word |
 | — | RTM with T2BAU plan | Generated | Excel |
+| — | Jira import: epics, stories and sub-tasks | Generated | Excel and CSV |
 
 ## Start here
 

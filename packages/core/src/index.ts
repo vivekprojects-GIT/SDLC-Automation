@@ -7,5 +7,6 @@ export type { LlmImage, LlmMessage, LlmProvider } from './llm/provider';
 export { estimateTokens, messageTokens } from './context/budget';
 export { buildMatrix, coverageOf, uncovered } from './trace/matrix';
 export { extractItems, requirementIds } from './trace/items';
+export { buildJiraIssues, type JiraIssue } from './export/jira';
 export { parseQuestions } from './guardrails/questions';
 export type * from './types';

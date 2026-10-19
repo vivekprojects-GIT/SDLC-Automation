@@ -33,6 +33,7 @@ Inside `packages/core/src`:
 | `governance/` | Versions, saved state, the audit log |
 | `trace/` | IDs, cross-references, the RTM |
 | `export/word.ts`, `export/excel.ts` | Word deliverables, Excel workbooks (one tab per section) and the RTM |
+| `export/jira.ts` | The Jira import: epics from the BRD's functional changes, stories from FDD items, sub-tasks from TDD items |
 | `llm/` | The `LlmProvider` interface |
 
 ## Add a check

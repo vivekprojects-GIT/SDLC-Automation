@@ -9,7 +9,7 @@
 3. **`vscode-extension` is a thin bridge.** It turns messages into `Pipeline` calls, opens files and dialogs, and watches for edits.
 4. **Both front doors share the engine.** The screen and Copilot chat (through the CLI) end up in the same `Pipeline` methods, so gates and checks behave the same.
 5. **Content is data.** Templates, step instructions (`content/steps/`), agents, rules and the NFR checklist are Markdown in `content/`, editable without code.
-6. **State lives with the project.** `projects/<id>/outputs/` holds the deliverables (with front matter), `pipeline-state.json`, `audit-log.csv`, the RTM and the Planview/PPP files in `deliverables/`.
+6. **State lives with the project.** `projects/<id>/outputs/` holds the deliverables (with front matter), `pipeline-state.json`, `audit-log.csv`, the RTM and the Planview/PPP files and Jira import in `deliverables/`.
 
 ## Inside core
 

@@ -181,7 +181,7 @@ async function main(): Promise<void> {
     }
     case 'export': {
       const r = await pipeline.exportAll(actor);
-      console.log(`Exported ${r.files.length} deliverables. ${r.coverage.fullyTraced} of ${r.coverage.requirements} requirements are fully traced.`);
+      console.log(`Exported ${r.files.length} files. ${r.coverage.fullyTraced} of ${r.coverage.requirements} requirements are fully traced.`);
       for (const f of r.files) console.log(`  projects/${pipeline.project.id}/${f}`);
       break;
     }

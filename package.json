@@ -2,7 +2,7 @@
   "name": "sdlc-capm",
   "private": true,
   "version": "0.1.0",
-  "description": "Turns basic requirements and Figma screens into an approved PRD, BRD, test cases and Jira stories, with a human review at every step.",
+  "description": "Writes MUFG's PDLC Planning deliverables (BRD, FDD, DRD/DSD, TDD, SIT and UAT QA Strategies) and the RTM with GitHub Copilot, with a named owner approving each one, plus a Jira import for the delivery team.",
   "workspaces": [
     "packages/core",
     "packages/cli",

@@ -7,6 +7,7 @@ import { buildMessages, type PromptInput, type UpstreamDoc } from '../context/pr
 import { docFile, hashBody, readDoc, relToProject, writeDoc } from '../documents';
 import { PipelineError } from '../errors';
 import { markdownToWorkbook, rtmToExcel } from '../export/excel';
+import { buildJiraIssues, jiraToCsv, jiraToExcel } from '../export/jira';
 import { markdownToWord, type DeliverableMeta } from '../export/word';
 import { appendAudit, readAudit } from '../governance/audit';
 import { emptyStage, loadState, saveState, type PipelineState, type StageState } from '../governance/state';
@@ -45,6 +46,8 @@ const STATUS_WORDS: Record<StageStatus, string> = {
 /** The RTM, kept beside the documents for review in the editor; the Planview/PPP copies go to outputs/deliverables/. */
 const RTM_FILES = ['outputs/rtm.md', 'outputs/rtm.csv'];
 const DELIVERABLES = 'outputs/deliverables';
+/** The Jira import: the CSV Jira reads, and the same issues as a workbook to review. */
+const JIRA_FILES = [`${DELIVERABLES}/jira-import.xlsx`, `${DELIVERABLES}/jira-import.csv`];
 const DEFAULT_INPUT_TOKENS = 60_000;
 const QUALITY_CEILING = 128_000;
 
@@ -387,13 +390,15 @@ export class Pipeline {
 
   /**
    * Writes every approved deliverable for Planview/PPP (the BRD, FDD and DSD as Excel workbooks with
-   * one tab per section, the others as Word) and the RTM with its Transition to BAU plan. Needs every step approved.
+   * one tab per section, the others as Word), the RTM with its Transition to BAU plan, and a Jira import of
+   * epics, stories and sub-tasks built from the BRD, FDD and TDD. Needs every step approved.
    */
   exportAll(actor: Actor): Promise<ExportResult> {
     return this.exclusive(async () => {
       const pending = this.order.filter((k) => this.status(k) !== 'approved');
       if (pending.length) throw new PipelineError('Export needs every document approved first.', pending.map((k) => `${STAGES[k].title} is ${STATUS_WORDS[this.status(k)]}.`));
-      const matrix = buildMatrix(await this.traceDocs(), this.removedIds());
+      const docs = await this.traceDocs();
+      const matrix = buildMatrix(docs, this.removedIds());
       const coverage = coverageOf(matrix);
       const at = this.now();
       const out = (rel: string) => path.join(this.project.dir, rel);
@@ -416,7 +421,15 @@ export class Pipeline {
       await this.writeFile(rtm, rtmToExcel(matrix, coverage, this.project.name, at));
       files.push(rtm);
 
-      await this.audit('export', 'exported', actor.name, '', `${files.length} deliverables; ${coverage.fullyTraced} of ${coverage.requirements} requirements fully traced`);
+      const issues = buildJiraIssues(docs, this.removedIds());
+      if (issues.length) {
+        await this.writeFile(JIRA_FILES[0], jiraToExcel(issues, this.project.name, at));
+        await this.writeFile(JIRA_FILES[1], jiraToCsv(issues));
+        files.push(...JIRA_FILES);
+      }
+      const count = (t: string) => issues.filter((i) => i.type === t).length;
+      const jira = issues.length ? `; Jira import of ${count('Epic')} epics, ${count('Story')} stories and ${count('Sub-task')} sub-tasks` : '';
+      await this.audit('export', 'exported', actor.name, '', `${files.length} files; ${coverage.fullyTraced} of ${coverage.requirements} requirements fully traced${jira}`);
       this.emit({ type: 'changed' });
       return { files, matrix, coverage };
     });
@@ -510,7 +523,7 @@ export class Pipeline {
     }
     const matrix = buildMatrix({ brd: documents.brd, fdd: documents.fdd, dsd: documents.dsd, tdd: documents.tdd, sit: documents['sit-strategy'], uat: documents['uat-strategy'] }, this.removedIds());
     const exportFiles: string[] = [];
-    for (const rel of [...this.order.map((k) => this.deliverablePath(k)), `${DELIVERABLES}/rtm.xlsx`, ...RTM_FILES]) {
+    for (const rel of [...this.order.map((k) => this.deliverablePath(k)), `${DELIVERABLES}/rtm.xlsx`, ...JIRA_FILES, ...RTM_FILES]) {
       try {
         await fs.access(path.join(this.project.dir, rel));
         exportFiles.push(rel);

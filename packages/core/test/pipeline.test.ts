@@ -103,6 +103,8 @@ describe('pipeline end to end with the fake AI', () => {
       'outputs/deliverables/05-sit-strategy.docx',
       'outputs/deliverables/06-uat-strategy.docx',
       'outputs/deliverables/rtm.xlsx',
+      'outputs/deliverables/jira-import.xlsx',
+      'outputs/deliverables/jira-import.csv',
     ]);
     expect(result.matrix.find((r) => r.id === 'FR-03')).toMatchObject({ type: 'Functional', design: ['FD-03'], data: ['DA-02'], technical: ['TD-03'], sit: 'Yes', uat: 'Yes' });
     expect(result.matrix.find((r) => r.id === 'FR-08')).toMatchObject({ sit: 'Yes', uat: 'No' });
@@ -151,13 +153,33 @@ describe('pipeline end to end with the fake AI', () => {
     expect(Object.keys(rtmRows[0])).toEqual(expect.arrayContaining(['BRD ID', 'FDD', 'Data attributes', 'TDD', 'In SIT scope', 'In UAT scope', 'BAU owner', 'Transition activity']));
     expect(rtmRows.find((r) => r['BRD ID'] === 'FR-03')).toMatchObject({ FDD: 'FD-03', 'Data attributes': 'DA-02', TDD: 'TD-03', 'Trace status': 'Complete', 'BAU owner': '' });
 
+    // The Jira import: an epic per BRD functional change, a story per FDD item, a sub-task per TDD item.
+    const jira = await workbook(path.join(dir, 'outputs/deliverables/jira-import.xlsx'));
+    expect(jira.SheetNames).toEqual(['Jira import', 'How to import', 'Document control']);
+    const issues = rowsOf(jira, 'Jira import');
+    expect(issues.filter((i) => i['Issue Type'] === 'Epic').map((i) => i.Summary)).toEqual(['Add the policy check on submission', 'Add exception routing and notification', 'Add audit records and legacy history']);
+    expect(issues.filter((i) => i['Issue Type'] === 'Story')).toHaveLength(8);
+    expect(issues.filter((i) => i['Issue Type'] === 'Sub-task')).toHaveLength(8);
+    expect(issues.find((i) => i['Issue Id'] === 'FD-03')).toMatchObject({ 'Parent Id': 'EP-01', Summary: 'Add the total exposure rule using the exposure feed', Priority: 'High', Labels: 'sdlc-capm FR-03', 'BRD IDs': 'FR-03' });
+    expect(issues.find((i) => i['Issue Id'] === 'FD-03')!['Acceptance Criteria']).toContain('FR-03: Check that total exposure');
+    expect(issues.find((i) => i['Issue Id'] === 'TD-03')).toMatchObject({ 'Parent Id': 'FD-03', 'Issue Type': 'Sub-task', Summary: 'Policy check service: Exposure rule calling the exposure feed' });
+    expect(issues.find((i) => i['Issue Id'] === 'FD-08')).toMatchObject({ 'Parent Id': 'EP-03', Priority: 'Medium' });
+    // Every child comes after its parent, as Jira's import needs.
+    const seen = new Set<string>();
+    for (const i of issues) {
+      if (i['Parent Id']) expect(seen.has(i['Parent Id'])).toBe(true);
+      seen.add(i['Issue Id']);
+    }
+    const csv = await fs.readFile(path.join(dir, 'outputs/deliverables/jira-import.csv'), 'utf8');
+    expect(csv.startsWith('Issue Id,Parent Id,Issue Type,Summary,Description,Acceptance Criteria,Priority,Labels,BRD IDs' + String.fromCharCode(13, 10))).toBe(true);
+
     for (const f of [...result.files, 'outputs/rtm.md', 'outputs/rtm.csv']) await fs.access(path.join(dir, f));
     expect((await p.snapshot()).exportFiles).toEqual(expect.arrayContaining(result.files));
 
     const audit = await fs.readFile(path.join(dir, 'outputs', 'audit-log.csv'), 'utf8');
     expect(audit).toContain('sent back');
     expect(audit).toContain(',kept,');
-    expect(audit).toContain('8 deliverables; 8 of 8 requirements fully traced');
+    expect(audit).toContain('10 files; 8 of 8 requirements fully traced; Jira import of 3 epics, 8 stories and 8 sub-tasks');
   });
 
   it('writes a missing TDD item automatically before the reviewer sees the draft', async () => {
